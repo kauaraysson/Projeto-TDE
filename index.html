@@ -2,297 +2,278 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PreviAr - Autenticação</title>
     
-    <link rel="icon" type="image/png" href="logo.png">
+    <!-- Favicon usando sua logo oficial -->
+    <link rel="icon" type="image/png" href="sun.png">
+    
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* ==========================================
-           1. ESTILO PREVIAR ATMOSPHERE 
-           ========================================== */
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        
-        body { 
-            background: #050a0f; 
-            color: #fff; 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; 
+        :root {
+            --primary: #4fc3f7;
+            --primary-dark: #0288d1;
+            --bg-dark: #0a0e14;
+            --glass: rgba(255, 255, 255, 0.03);
+            --error: #ff5252;
+            --success: #4caf50;
         }
 
-        /* Fundo dinâmico simulando a atmosfera */
-        .bg-atmosfera {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 70% 30%, rgba(255, 183, 77, 0.15) 0%, rgba(5, 10, 15, 1) 70%);
-            z-index: 1;
+        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        
+        body { 
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 70% 20%, rgba(79, 195, 247, 0.1) 0%, transparent 50%);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
 
         .login-card {
             width: 100%;
-            max-width: 450px;
+            max-width: 440px;
             padding: 40px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
+            background: var(--glass);
+            backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            z-index: 10;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
             text-align: center;
+            z-index: 10;
         }
 
         /* ==========================================
-           2. O MASCOTE "SUNNY" (Animação de Elite)
+           1. MASCOTE SVG INTERATIVO (O SUNNY)
            ========================================== */
-        .mascote-box {
-            width: 150px; height: 150px;
-            margin: 0 auto 20px;
+        .mascote-container {
+            width: 140px; height: 140px;
+            margin: 0 auto 30px;
             position: relative;
         }
 
-        /* Raios Girando (Animação Contínua) */
-        .sol-raios {
+        /* Animação de Raios Externos */
+        .sun-rays {
             position: absolute;
-            top: 15px; left: 15px;
-            width: 120px; height: 120px;
-            border: 4px dashed #FFB74D;
-            border-radius: 50%;
-            animation: girarSol 20s linear infinite;
+            top: 0; left: 0; width: 100%; height: 100%;
+            animation: rotateRays 15s linear infinite;
         }
 
-        @keyframes girarSol { 100% { transform: rotate(360deg); } }
+        @keyframes rotateRays { 100% { transform: rotate(360deg); } }
 
-        .sol-corpo {
-            position: absolute;
-            top: 25px; left: 25px;
-            width: 100px; height: 100px;
-            background: #FFD54F;
-            border-radius: 50%;
-            box-shadow: 0 0 40px rgba(255, 213, 79, 0.6);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 5;
-        }
-
-        .olhos { display: flex; gap: 20px; transition: 0.3s; }
-        .olho { width: 12px; height: 12px; background: #2c3e50; border-radius: 50%; position: relative; }
-        .pupila { 
-            width: 5px; height: 5px; background: #fff; border-radius: 50%; 
-            position: absolute; top: 2px; left: 2px; transition: 0.2s;
-        }
-
-        .sorriso { 
-            position: absolute; bottom: 25px; 
-            width: 30px; height: 15px; 
-            border-bottom: 4px solid #2c3e50; 
-            border-radius: 50%; 
-        }
-
-        /* Braços para tampar os olhos */
-        .braco {
-            position: absolute;
-            width: 45px; height: 35px;
-            background: #FFD54F;
-            border-radius: 20px;
-            top: 55px;
-            z-index: 10;
-            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            opacity: 0;
-            border: 2px solid #FBC02D;
-        }
-        .braco-esq { left: -10px; transform: rotate(-30deg); }
-        .braco-dir { right: -10px; transform: rotate(30deg); }
-
-        /* Estados das Animações do Mascote */
-        .foco-email .pupila { transform: translate(3px, 4px); }
+        .sunny-svg { width: 100%; height: 100%; overflow: visible; }
         
-        .foco-senha .braco { opacity: 1; transform: translateY(-25px) rotate(0deg); }
-        .foco-senha .braco-esq { left: 15px; }
-        .foco-senha .braco-dir { right: 15px; }
-        .foco-senha .olhos { opacity: 0; }
+        /* Face e Sorriso */
+        .sun-face { fill: #FFD54F; filter: drop-shadow(0 0 15px rgba(255, 213, 79, 0.5)); }
+        .sun-mouth { stroke: #333; stroke-width: 3; fill: none; stroke-linecap: round; }
+        
+        /* Olhos Reativos */
+        .olho { fill: #333; transition: transform 0.2s ease-out; }
+        .pupila { fill: #fff; }
 
-        .foco-ver-senha .braco-esq { transform: translateY(-25px) translateX(-10px) rotate(-15deg); }
-        .foco-ver-senha .braco-dir { transform: translateY(-25px) translateX(10px) rotate(15deg); }
-        .foco-ver-senha .olhos { opacity: 1; transform: scale(0.8); }
+        /* Braços (Escondendo os olhos) */
+        .braco { 
+            fill: #FFD54F; 
+            stroke: #FBC02D; stroke-width: 1;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Estados das Animações */
+        .look-at-email .olho { transform: translate(4px, 5px); }
+        
+        .covering-eyes .braco { opacity: 1; transform: translateY(0); }
+        .covering-eyes .olho { opacity: 0; }
+        
+        .peeking-eyes .braco-left { transform: translate(-8px, -5px) rotate(-15deg); }
+        .peeking-eyes .braco-right { transform: translate(8px, -5px) rotate(15deg); }
+        .peeking-eyes .olho { opacity: 1; transform: scale(0.8); }
 
         /* ==========================================
-           3. FORMULÁRIO E INPUTS
+           2. FORMULÁRIO E UX
            ========================================== */
-        .titulo { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
-        .titulo span { color: #4fc3f7; }
+        .brand-title { font-size: 36px; font-weight: 800; margin-bottom: 35px; letter-spacing: -1.5px; }
+        .brand-title span { color: var(--primary); }
 
-        .campo { margin-bottom: 20px; text-align: left; }
-        .campo label { font-size: 12px; font-weight: bold; color: #81d4fa; text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .field { text-align: left; margin-bottom: 22px; position: relative; }
+        .field label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 1px; }
         
-        .input-wrapper { position: relative; }
-        .input-wrapper input {
-            width: 100%; padding: 16px 16px 16px 45px;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; color: #fff; font-size: 16px; transition: 0.3s;
+        .input-group { position: relative; }
+        .input-group input {
+            width: 100%; padding: 16px 16px 16px 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px; color: #fff; font-size: 16px;
+            transition: all 0.3s;
         }
-        .input-wrapper input:focus { border-color: #4fc3f7; background: rgba(255,255,255,0.1); outline: none; }
-        .input-icon { position: absolute; left: 15px; top: 18px; opacity: 0.5; }
+        .input-group input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(79, 195, 247, 0.2); }
+        
+        .icon { position: absolute; left: 16px; top: 17px; font-size: 18px; opacity: 0.4; }
+        .btn-view { position: absolute; right: 16px; top: 17px; background: none; border: none; cursor: pointer; color: #fff; opacity: 0.5; font-size: 18px; }
 
-        .btn-toggle-senha { position: absolute; right: 15px; top: 18px; background: none; border: none; cursor: pointer; font-size: 18px; }
-
-        .btn-entrar {
-            width: 100%; padding: 18px; margin-top: 20px;
-            background: linear-gradient(135deg, #4fc3f7, #0288d1);
-            border: none; border-radius: 15px; color: #fff;
-            font-weight: 800; font-size: 16px; cursor: pointer;
-            transition: 0.3s; box-shadow: 0 10px 20px rgba(2, 136, 209, 0.3);
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none; color: #fff; font-weight: 900; font-size: 16px;
+            cursor: pointer; transition: 0.4s;
+            box-shadow: 0 10px 25px rgba(2, 136, 209, 0.4);
+            margin-top: 15px;
         }
-        .btn-entrar:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(2, 136, 209, 0.5); }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(2, 136, 209, 0.6); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .footer-links { margin-top: 25px; font-size: 14px; color: #b0bec5; }
-        .footer-links a { color: #4fc3f7; text-decoration: none; font-weight: bold; }
+        .switch-txt { margin-top: 25px; font-size: 14px; color: #b0bec5; }
+        .switch-txt a { color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
 
-        .msg-status { 
-            margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold;
-            display: none; animation: slideUp 0.3s ease;
+        .status-msg { 
+            margin-top: 20px; padding: 14px; border-radius: 12px; font-size: 14px; 
+            font-weight: 600; display: none; animation: slideIn 0.3s ease;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .erro { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; }
-        .sucesso { background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid #4CAF50; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } }
+        .error { background: rgba(255, 82, 82, 0.1); color: var(--error); border: 1px solid var(--error); }
+        .success { background: rgba(76, 175, 80, 0.1); color: var(--success); border: 1px solid var(--success); }
 
     </style>
 </head>
 <body>
 
-    <div class="bg-atmosfera"></div>
-
     <div class="login-card">
         
-        <!-- Sunny: O Mascote Interativo -->
-        <div class="mascote-box" id="sunny-box">
-            <div class="sol-raios"></div>
-            <div class="sol-corpo">
-                <div class="olhos">
-                    <div class="olho"><div class="pupila"></div></div>
-                    <div class="olho"><div class="pupila"></div></div>
-                </div>
-                <div class="sorriso"></div>
+        <!-- Sunny 2.0: O Mascote Vetorial -->
+        <div class="mascote-container" id="sunny-control">
+            <div class="sun-rays">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="48" fill="none" stroke="#FFB74D" stroke-width="2" stroke-dasharray="8 8"/>
+                </svg>
             </div>
-            <div class="braco braco-esq"></div>
-            <div class="braco braco-dir"></div>
+            <svg class="sunny-svg" viewBox="0 0 100 100">
+                <circle class="sun-face" cx="50" cy="50" r="35"/>
+                <!-- Olhos -->
+                <g class="olhos-group">
+                    <circle id="olho-L" class="olho" cx="40" cy="45" r="4"/>
+                    <circle id="olho-R" class="olho" cx="60" cy="45" r="4"/>
+                </g>
+                <path class="sun-mouth" d="M40 60 Q50 70 60 60"/>
+                <!-- Braços (Mãos) -->
+                <rect class="braco braco-left" x="25" y="35" width="22" height="25" rx="10"/>
+                <rect class="braco braco-right" x="53" y="35" width="22" height="25" rx="10"/>
+            </svg>
         </div>
 
-        <h1 class="titulo">PreviAr<span>.</span></h1>
+        <h1 class="brand-title">PreviAr<span>.</span></h1>
 
-        <div id="form-contexto">
-            <div class="campo">
-                <label>Seu Identificador (E-mail)</label>
-                <div class="input-wrapper">
-                    <span class="input-icon">📧</span>
-                    <input type="email" id="email" placeholder="nome@exemplo.com" onfocus="animarSunny('olhar')" onblur="animarSunny('reset')">
+        <div id="form-box">
+            <div class="field">
+                <label>Identificador de Acesso</label>
+                <div class="input-group">
+                    <span class="icon">📧</span>
+                    <input type="email" id="email" placeholder="estudante@uniube.edu.br" onfocus="updateSunny('email')" onblur="updateSunny('reset')">
                 </div>
             </div>
 
-            <div class="campo">
-                <label>Chave de Acesso (Senha)</label>
-                <div class="input-wrapper">
-                    <span class="input-icon">🔒</span>
-                    <input type="password" id="senha" placeholder="••••••••" onfocus="animarSunny('tampando')" onblur="animarSunny('reset')">
-                    <button type="button" class="btn-toggle-senha" onclick="espiarSenha()">👁️</button>
+            <div class="field">
+                <label>Chave de Segurança</label>
+                <div class="input-group">
+                    <span class="icon">🔒</span>
+                    <input type="password" id="senha" placeholder="••••••••" onfocus="updateSunny('password')" onblur="updateSunny('reset')">
+                    <button type="button" class="btn-view" onclick="togglePeek()">👁️</button>
                 </div>
             </div>
 
-            <button class="btn-entrar" id="btn-master" onclick="gerenciarAcesso()">Acessar Monitoramento</button>
+            <button class="btn-main" id="btn-exec" onclick="handleAuth()">Acessar Monitoramento</button>
 
-            <div class="footer-links">
-                <p id="toggle-txt">Novo por aqui? <a href="#" onclick="mudarModo()">Criar conta de estudante</a></p>
-            </div>
+            <p class="switch-txt" id="toggle-area">
+                Novo no PreviAr? <a onclick="toggleMode()">Criar conta de estudante</a>
+            </p>
 
-            <div id="status-box" class="msg-status"></div>
+            <div id="feedback" class="status-msg"></div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
+        // CONFIGURAÇÕES DE ELITE
         const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-xvSt9oDNcXTfb69gfsdnQ_k8BxD8KI";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let modoCadastro = false;
+        let isSignupMode = false;
 
         // ==========================================
-        // 1. MOTOR DE ANIMAÇÃO DO SUNNY
+        // MOTOR DE ANIMAÇÃO DO MASCOTE
         // ==========================================
-        function animarSunny(estado) {
-            const sunny = document.getElementById('sunny-box');
-            sunny.classList.remove('foco-email', 'foco-senha', 'foco-ver-senha');
+        function updateSunny(state) {
+            const container = document.getElementById('sunny-control');
+            container.classList.remove('look-at-email', 'covering-eyes', 'peeking-eyes');
 
-            if(estado === 'olhar') sunny.classList.add('foco-email');
-            if(estado === 'tampando') {
-                const ver = document.getElementById('senha').type === 'text';
-                sunny.classList.add(ver ? 'foco-ver-senha' : 'foco-senha');
+            if (state === 'email') container.classList.add('look-at-email');
+            if (state === 'password') {
+                const isVisible = document.getElementById('senha').type === 'text';
+                container.classList.add(isVisible ? 'peeking-eyes' : 'covering-eyes');
             }
         }
 
-        function espiarSenha() {
-            const s = document.getElementById('senha');
-            s.type = (s.type === 'password') ? 'text' : 'password';
-            // Se estiver focado na senha, atualiza a animação para a fresta
-            if(document.activeElement === s) animarSunny('tampando');
+        function togglePeek() {
+            const input = document.getElementById('senha');
+            input.type = (input.type === 'password') ? 'text' : 'password';
+            if (document.activeElement === input) updateSunny('password');
         }
 
         // ==========================================
-        // 2. LÓGICA DE IHM (MUDAR TELA)
+        // LÓGICA DE IHM E UX
         // ==========================================
-        function mudarModo() {
-            modoCadastro = !modoCadastro;
-            const t = document.getElementById('toggle-txt');
-            const b = document.getElementById('btn-master');
+        function toggleMode() {
+            isSignupMode = !isSignupMode;
+            const btn = document.getElementById('btn-exec');
+            const txt = document.getElementById('toggle-area');
             
-            if(modoCadastro) {
-                b.innerText = "Finalizar Cadastro";
-                t.innerHTML = "Já possui acesso? <a href='#' onclick='mudarModo()'>Fazer Login</a>";
-            } else {
-                b.innerText = "Acessar Monitoramento";
-                t.innerHTML = "Novo por aqui? <a href='#' onclick='mudarModo()'>Criar conta de estudante</a>";
-            }
+            btn.innerText = isSignupMode ? "Finalizar Cadastro" : "Acessar Monitoramento";
+            txt.innerHTML = isSignupMode ? 
+                "Já tem acesso? <a onclick='toggleMode()'>Fazer Login</a>" : 
+                "Novo no PreviAr? <a onclick='toggleMode()'>Criar conta de estudante</a>";
         }
 
-        function feedback(texto, tipo) {
-            const s = document.getElementById('status-box');
-            s.innerText = texto;
-            s.style.display = 'block';
-            s.className = `msg-status ${tipo}`;
+        function notify(text, type) {
+            const box = document.getElementById('feedback');
+            box.innerText = text;
+            box.style.display = 'block';
+            box.className = `status-msg ${type}`;
         }
 
         // ==========================================
-        // 3. COMUNICAÇÃO COM SUPABASE
+        // INTEGRAÇÃO SUPABASE
         // ==========================================
-        async function gerenciarAcesso() {
+        async function handleAuth() {
             const email = document.getElementById('email').value;
-            const senha = document.getElementById('senha').value;
-            const b = document.getElementById('btn-master');
+            const password = document.getElementById('senha').value;
+            const btn = document.getElementById('btn-exec');
 
-            if(!email || !senha) {
-                feedback("⚠️ Preencha todos os campos para continuar.", "erro");
+            if (!email || !password) {
+                notify("⚠️ Preencha os campos para validar o acesso.", "error");
                 return;
             }
 
-            b.disabled = true;
-            b.innerText = "Validando...";
+            btn.disabled = true;
+            btn.innerText = "Processando...";
 
-            if(modoCadastro) {
-                const { data, error } = await supabase.auth.signUp({ email, password: senha });
-                if(error) feedback("❌ Erro: " + error.message, "erro");
-                else feedback("✅ Conta criada! Verifique seu e-mail.", "sucesso");
+            if (isSignupMode) {
+                const { error } = await supabase.auth.signUp({ email, password });
+                if (error) notify("❌ Erro: " + error.message, "error");
+                else notify("✅ Verifique seu e-mail para confirmar a conta!", "success");
             } else {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
-                if(error) feedback("❌ Acesso negado. Verifique os dados.", "erro");
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) notify("❌ Credenciais inválidas. Tente novamente.", "error");
                 else {
-                    feedback("🚀 Acesso autorizado! Entrando...", "sucesso");
-                    setTimeout(() => { alert("Login realizado! Agora vamos construir sua Dashboard Real."); }, 1500);
+                    notify("🚀 Acesso concedido! Sincronizando dados...", "success");
+                    setTimeout(() => { alert("Login realizado com sucesso! Agora vamos preparar sua Dashboard."); }, 1000);
                 }
             }
-            b.disabled = false;
-            b.innerText = modoCadastro ? "Finalizar Cadastro" : "Acessar Monitoramento";
+            btn.disabled = false;
+            btn.innerText = isSignupMode ? "Finalizar Cadastro" : "Acessar Monitoramento";
         }
     </script>
 </body>
