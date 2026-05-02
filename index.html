@@ -3,296 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PreviAr - Faça seu Login</title>
+    <title>PreviAr - Autenticação</title>
     
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* ==========================================
-           1. ESTILO LOGIN PREMIUM (Referência)
+           1. ESTILO PREVIAR ATMOSPHERE 
            ========================================== */
-        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         
         body { 
-            background-color: #000; 
+            background: #050a0f; 
             color: #fff; 
             height: 100vh; 
             display: flex; 
+            justify-content: center;
+            align-items: center;
             overflow: hidden; 
         }
 
-        /* Divisão da tela: Esquerda (Form) / Direita (Imagem) */
-        .login-wrapper { 
-            display: flex; 
-            width: 100%; 
-            height: 100%; 
+        /* Fundo dinâmico simulando a atmosfera */
+        .bg-atmosfera {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 70% 30%, rgba(255, 183, 77, 0.15) 0%, rgba(5, 10, 15, 1) 70%);
+            z-index: 1;
         }
 
-        .login-side { 
-            width: 50%; 
-            padding: 60px; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            background: #000; 
-            z-index: 2;
-        }
-
-        .image-side { 
-            width: 50%; 
-            background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1350&q=80') no-repeat center center; 
-            background-size: cover; 
-            position: relative;
-        }
-
-        .image-side::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background: linear-gradient(to right, #000, transparent);
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            z-index: 10;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
         }
 
         /* ==========================================
-           2. O SOLZINHO ANIMADO (Mascote UX)
+           2. O MASCOTE "SUNNY" (Animação de Elite)
            ========================================== */
-        .mascote-container {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 20px;
+        .mascote-box {
+            width: 150px; height: 150px;
+            margin: 0 auto 20px;
             position: relative;
-            align-self: flex-start;
         }
 
-        .sol-face {
-            width: 80px; height: 80px;
-            background: #FFD700;
-            border-radius: 50%;
+        /* Raios Girando (Animação Contínua) */
+        .sol-raios {
             position: absolute;
-            top: 20px; left: 20px;
-            box-shadow: 0 0 30px #FF8C00;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: 0.5s ease;
+            top: 15px; left: 15px;
+            width: 120px; height: 120px;
+            border: 4px dashed #FFB74D;
+            border-radius: 50%;
+            animation: girarSol 20s linear infinite;
         }
 
-        .olhos { display: flex; gap: 15px; transition: 0.3s; }
-        .olho { width: 10px; height: 10px; background: #333; border-radius: 50%; }
-        .boca { 
-            position: absolute; bottom: 20px; 
-            width: 20px; height: 10px; 
-            border-bottom: 3px solid #333; 
-            border-radius: 0 0 10px 10px; 
+        @keyframes girarSol { 100% { transform: rotate(360deg); } }
+
+        .sol-corpo {
+            position: absolute;
+            top: 25px; left: 25px;
+            width: 100px; height: 100px;
+            background: #FFD54F;
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(255, 213, 79, 0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 5;
         }
 
-        /* Braços (Escondendo os olhos) */
-        .bracos {
-            position: absolute; width: 100%; height: 100%;
-            top: 0; left: 0; pointer-events: none;
+        .olhos { display: flex; gap: 20px; transition: 0.3s; }
+        .olho { width: 12px; height: 12px; background: #2c3e50; border-radius: 50%; position: relative; }
+        .pupila { 
+            width: 5px; height: 5px; background: #fff; border-radius: 50%; 
+            position: absolute; top: 2px; left: 2px; transition: 0.2s;
         }
+
+        .sorriso { 
+            position: absolute; bottom: 25px; 
+            width: 30px; height: 15px; 
+            border-bottom: 4px solid #2c3e50; 
+            border-radius: 50%; 
+        }
+
+        /* Braços para tampar os olhos */
         .braco {
-            width: 30px; height: 30px; background: #FFD700; border-radius: 10px;
-            position: absolute; top: 45px; transition: 0.5s; opacity: 0;
+            position: absolute;
+            width: 45px; height: 35px;
+            background: #FFD54F;
+            border-radius: 20px;
+            top: 55px;
+            z-index: 10;
+            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+            border: 2px solid #FBC02D;
         }
-        .braco-esq { left: 5px; transform: rotate(-45deg); }
-        .braco-dir { right: 5px; transform: rotate(45deg); }
+        .braco-esq { left: -10px; transform: rotate(-30deg); }
+        .braco-dir { right: -10px; transform: rotate(30deg); }
 
-        /* Estados da Animação */
-        .olhando-baixo .olhos { transform: translateY(5px); }
-        .escondido .braco { opacity: 1; transform: translateY(-15px) rotate(0deg); }
-        .escondido .olhos { opacity: 0; }
-        .fresta .braco-esq { transform: translateY(-15px) translateX(-5px) rotate(-20deg); }
-        .fresta .olhos { opacity: 1; transform: scale(0.7); }
+        /* Estados das Animações do Mascote */
+        .foco-email .pupila { transform: translate(3px, 4px); }
+        
+        .foco-senha .braco { opacity: 1; transform: translateY(-25px) rotate(0deg); }
+        .foco-senha .braco-esq { left: 15px; }
+        .foco-senha .braco-dir { right: 15px; }
+        .foco-senha .olhos { opacity: 0; }
+
+        .foco-ver-senha .braco-esq { transform: translateY(-25px) translateX(-10px) rotate(-15deg); }
+        .foco-ver-senha .braco-dir { transform: translateY(-25px) translateX(10px) rotate(15deg); }
+        .foco-ver-senha .olhos { opacity: 1; transform: scale(0.8); }
 
         /* ==========================================
            3. FORMULÁRIO E INPUTS
            ========================================== */
-        h1 { font-size: 48px; margin-bottom: 40px; font-weight: bold; }
-        h1 span { color: #A855F7; }
+        .titulo { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; }
+        .titulo span { color: #4fc3f7; }
 
-        .input-group { margin-bottom: 25px; position: relative; max-width: 400px; }
-        .input-group label { display: block; margin-bottom: 10px; color: #999; font-size: 14px; }
+        .campo { margin-bottom: 20px; text-align: left; }
+        .campo label { font-size: 12px; font-weight: bold; color: #81d4fa; text-transform: uppercase; margin-bottom: 8px; display: block; }
         
-        .input-field {
-            width: 100%; padding: 15px; padding-left: 45px;
-            background: #111; border: 1px solid #222;
-            border-radius: 8px; color: #fff; font-size: 16px;
-            outline: none; transition: 0.3s;
+        .input-wrapper { position: relative; }
+        .input-wrapper input {
+            width: 100%; padding: 16px 16px 16px 45px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px; color: #fff; font-size: 16px; transition: 0.3s;
         }
-        .input-field:focus { border-color: #A855F7; background: #181818; }
+        .input-wrapper input:focus { border-color: #4fc3f7; background: rgba(255,255,255,0.1); outline: none; }
+        .input-icon { position: absolute; left: 15px; top: 18px; opacity: 0.5; }
 
-        .icon-field { position: absolute; left: 15px; top: 43px; color: #444; }
-
-        .links-aux { display: flex; justify-content: flex-end; max-width: 400px; margin-bottom: 30px; }
-        .links-aux a { color: #666; text-decoration: none; font-size: 13px; }
-        .links-aux a:hover { color: #A855F7; }
+        .btn-toggle-senha { position: absolute; right: 15px; top: 18px; background: none; border: none; cursor: pointer; font-size: 18px; }
 
         .btn-entrar {
-            width: 100%; max-width: 400px; padding: 16px;
-            background: linear-gradient(90deg, #6366F1, #A855F7, #EC4899);
-            border: none; border-radius: 12px;
-            color: #fff; font-weight: bold; font-size: 16px;
-            cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 18px; margin-top: 20px;
+            background: linear-gradient(135deg, #4fc3f7, #0288d1);
+            border: none; border-radius: 15px; color: #fff;
+            font-weight: 800; font-size: 16px; cursor: pointer;
+            transition: 0.3s; box-shadow: 0 10px 20px rgba(2, 136, 209, 0.3);
         }
-        .btn-entrar:hover { transform: scale(1.02); filter: brightness(1.1); }
+        .btn-entrar:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(2, 136, 209, 0.5); }
 
-        .footer-link { text-align: center; max-width: 400px; margin-top: 20px; color: #666; font-size: 14px; }
-        .footer-link a { color: #A855F7; text-decoration: none; font-weight: bold; }
+        .footer-links { margin-top: 25px; font-size: 14px; color: #b0bec5; }
+        .footer-links a { color: #4fc3f7; text-decoration: none; font-weight: bold; }
 
-        #msg-feedback { 
-            max-width: 400px; padding: 15px; border-radius: 8px; 
-            margin-top: 20px; display: none; font-size: 14px; text-align: center;
+        .msg-status { 
+            margin-top: 20px; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: bold;
+            display: none; animation: slideUp 0.3s ease;
         }
-        .erro { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
-        .sucesso { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .erro { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; }
+        .sucesso { background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid #4CAF50; }
 
-        /* Mobile Adjust */
-        @media (max-width: 768px) {
-            .image-side { display: none; }
-            .login-side { width: 100%; padding: 30px; }
-        }
     </style>
 </head>
 <body>
 
-    <div class="login-wrapper">
-        <div class="login-side">
-            
-            <!-- Mascote Interativo -->
-            <div class="mascote-container" id="sol-mascote">
-                <div class="sol-face" id="sol-face">
-                    <div class="olhos">
-                        <div class="olho"></div>
-                        <div class="olho"></div>
-                    </div>
-                    <div class="boca"></div>
+    <div class="bg-atmosfera"></div>
+
+    <div class="login-card">
+        
+        <!-- Sunny: O Mascote Interativo -->
+        <div class="mascote-box" id="sunny-box">
+            <div class="sol-raios"></div>
+            <div class="sol-corpo">
+                <div class="olhos">
+                    <div class="olho"><div class="pupila"></div></div>
+                    <div class="olho"><div class="pupila"></div></div>
                 </div>
-                <div class="bracos">
-                    <div class="braco braco-esq"></div>
-                    <div class="braco braco-dir"></div>
-                </div>
+                <div class="sorriso"></div>
             </div>
-
-            <h1>Faça seu login<span>.</span></h1>
-
-            <div id="form-login">
-                <div class="input-group">
-                    <label>E-mail</label>
-                    <span class="icon-field">✉</span>
-                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" onfocus="animarSol('olhar')" onblur="animarSol('normal')">
-                </div>
-
-                <div class="input-group">
-                    <label>Senha</label>
-                    <span class="icon-field">🔒</span>
-                    <input type="password" id="senha" class="input-field" placeholder="••••••••" onfocus="animarSol('esconder')" onblur="animarSol('normal')">
-                    <button onclick="toggleSenha()" style="position:absolute; right:15px; top:43px; background:none; border:none; color:#444; cursor:pointer;">👁️</button>
-                </div>
-
-                <div class="links-aux">
-                    <a href="#" onclick="alert('Funcionalidade em desenvolvimento no Supabase...')">Esqueci minha senha</a>
-                </div>
-
-                <button class="btn-entrar" id="btn-acao" onclick="executarLogin()">Entrar</button>
-
-                <div class="footer-link">
-                    Ainda não tenho uma conta? <a href="#" onclick="trocarModo()">Criar agora</a>
-                </div>
-
-                <div id="msg-feedback"></div>
-            </div>
+            <div class="braco braco-esq"></div>
+            <div class="braco braco-dir"></div>
         </div>
 
-        <div class="image-side"></div>
-    </div>
+        <h1 class="titulo">PreviAr<span>.</span></h1>
 
-    <!-- O RESTANTE DO APP (ESTRUTURA) -->
-    <div id="app-content" style="display:none; padding:50px;">
-        <h1>Bem-vindo ao Painel Real!</h1>
-        <button onclick="location.reload()">Sair</button>
+        <div id="form-contexto">
+            <div class="campo">
+                <label>Seu Identificador (E-mail)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="email" placeholder="nome@exemplo.com" onfocus="animarSunny('olhar')" onblur="animarSunny('reset')">
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Chave de Acesso (Senha)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="senha" placeholder="••••••••" onfocus="animarSunny('tampando')" onblur="animarSunny('reset')">
+                    <button type="button" class="btn-toggle-senha" onclick="espiarSenha()">👁️</button>
+                </div>
+            </div>
+
+            <button class="btn-entrar" id="btn-master" onclick="gerenciarAcesso()">Acessar Monitoramento</button>
+
+            <div class="footer-links">
+                <p id="toggle-txt">Novo por aqui? <a href="#" onclick="mudarModo()">Criar conta de estudante</a></p>
+            </div>
+
+            <div id="status-box" class="msg-status"></div>
+        </div>
     </div>
 
     <script>
-        // Configurações do Supabase
+        // CONFIGURAÇÃO SUPABASE
         const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-xvSt9oDNcXTfb69gfsdnQ_k8BxD8KI";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let modoCadastro = false;
 
-        // 1. ANIMAÇÕES DO SOLZINHO
-        function animarSol(estado) {
-            const mascote = document.getElementById('sol-mascote');
-            mascote.classList.remove('olhando-baixo', 'escondido', 'fresta');
+        // ==========================================
+        // 1. MOTOR DE ANIMAÇÃO DO SUNNY
+        // ==========================================
+        function animarSunny(estado) {
+            const sunny = document.getElementById('sunny-box');
+            sunny.classList.remove('foco-email', 'foco-senha', 'foco-ver-senha');
 
-            if(estado === 'olhar') mascote.classList.add('olhando-baixo');
-            if(estado === 'esconder') {
-                const isVisivel = document.getElementById('senha').type === 'text';
-                mascote.classList.add(isVisivel ? 'fresta' : 'escondido');
+            if(estado === 'olhar') sunny.classList.add('foco-email');
+            if(estado === 'tampando') {
+                const ver = document.getElementById('senha').type === 'text';
+                sunny.classList.add(ver ? 'foco-ver-senha' : 'foco-senha');
             }
         }
 
-        function toggleSenha() {
-            const campo = document.getElementById('senha');
-            campo.type = (campo.type === 'password') ? 'text' : 'password';
-            if(document.activeElement === campo) animarSol('esconder');
+        function espiarSenha() {
+            const s = document.getElementById('senha');
+            s.type = (s.type === 'password') ? 'text' : 'password';
+            // Se estiver focado na senha, atualiza a animação para a fresta
+            if(document.activeElement === s) animarSunny('tampando');
         }
 
-        // 2. LÓGICA DE INTERFACE
-        function trocarModo() {
+        // ==========================================
+        // 2. LÓGICA DE IHM (MUDAR TELA)
+        // ==========================================
+        function mudarModo() {
             modoCadastro = !modoCadastro;
-            document.querySelector('h1').innerHTML = modoCadastro ? "Crie sua conta<span>.</span>" : "Faça seu login<span>.</span>";
-            document.getElementById('btn-acao').innerText = modoCadastro ? "Cadastrar" : "Entrar";
-            document.querySelector('.footer-link').innerHTML = modoCadastro ? 
-                "Já tem conta? <a href='#' onclick='trocarModo()'>Fazer login</a>" : 
-                "Ainda não tenho uma conta? <a href='#' onclick='trocarModo()'>Criar agora</a>";
+            const t = document.getElementById('toggle-txt');
+            const b = document.getElementById('btn-master');
+            
+            if(modoCadastro) {
+                b.innerText = "Finalizar Cadastro";
+                t.innerHTML = "Já possui acesso? <a href='#' onclick='mudarModo()'>Fazer Login</a>";
+            } else {
+                b.innerText = "Acessar Monitoramento";
+                t.innerHTML = "Novo por aqui? <a href='#' onclick='mudarModo()'>Criar conta de estudante</a>";
+            }
         }
 
-        function mostrarMensagem(texto, tipo) {
-            const box = document.getElementById('msg-feedback');
-            box.innerText = texto;
-            box.style.display = 'block';
-            box.className = tipo; // 'erro' ou 'sucesso'
+        function feedback(texto, tipo) {
+            const s = document.getElementById('status-box');
+            s.innerText = texto;
+            s.style.display = 'block';
+            s.className = `msg-status ${tipo}`;
         }
 
-        // 3. COMUNICAÇÃO COM O SUPABASE
-        async function executarLogin() {
+        // ==========================================
+        // 3. COMUNICAÇÃO COM SUPABASE
+        // ==========================================
+        async function gerenciarAcesso() {
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
-            const btn = document.getElementById('btn-acao');
+            const b = document.getElementById('btn-master');
 
             if(!email || !senha) {
-                mostrarMensagem("⚠️ Por favor, preencha todos os campos.", "erro");
+                feedback("⚠️ Preencha todos os campos para continuar.", "erro");
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerText = "Processando...";
+            b.disabled = true;
+            b.innerText = "Validando...";
 
             if(modoCadastro) {
-                // Lógica de Cadastro
                 const { data, error } = await supabase.auth.signUp({ email, password: senha });
-                if(error) {
-                    mostrarMensagem("❌ Erro ao cadastrar: " + error.message, "erro");
-                } else {
-                    mostrarMensagem("✅ Sucesso! Verifique seu e-mail para confirmar.", "sucesso");
-                }
+                if(error) feedback("❌ Erro: " + error.message, "erro");
+                else feedback("✅ Conta criada! Verifique seu e-mail.", "sucesso");
             } else {
-                // Lógica de Login
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
-                if(error) {
-                    mostrarMensagem("❌ Acesso negado: " + error.message, "erro");
-                } else {
-                    mostrarMensagem("🚀 Autenticado! Redirecionando...", "sucesso");
-                    setTimeout(() => {
-                        document.querySelector('.login-wrapper').style.display = 'none';
-                        document.getElementById('app-content').style.display = 'block';
-                    }, 1500);
+                if(error) feedback("❌ Acesso negado. Verifique os dados.", "erro");
+                else {
+                    feedback("🚀 Acesso autorizado! Entrando...", "sucesso");
+                    setTimeout(() => { alert("Login realizado! Agora vamos construir sua Dashboard Real."); }, 1500);
                 }
             }
-            btn.disabled = false;
-            btn.innerText = modoCadastro ? "Cadastrar" : "Entrar";
+            b.disabled = false;
+            b.innerText = modoCadastro ? "Finalizar Cadastro" : "Acessar Monitoramento";
         }
     </script>
 </body>
