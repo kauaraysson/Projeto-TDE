@@ -3,277 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PreviAr - Autenticação</title>
-    
-    <!-- Favicon usando sua logo oficial -->
-    <link rel="icon" type="image/png" href="logo.png">
-    
-    <!-- Supabase SDK -->
+    <title>PreviAr - Login de Elite</title>
+    <link rel="icon" type="image/png" href="sun.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        :root {
-            --primary: #4fc3f7;
-            --primary-dark: #0288d1;
-            --bg-dark: #0a0e14;
-            --glass: rgba(255, 255, 255, 0.03);
-            --error: #ff5252;
-            --success: #4caf50;
-        }
-
-        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        :root { --blue: #4fc3f7; --dark: #050a0f; --yellow: #FFD54F; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         
-        body { 
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 70% 20%, rgba(79, 195, 247, 0.1) 0%, transparent 50%);
-            color: #fff;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+        body { background: var(--dark); color: #fff; height: 100vh; display: flex; overflow: hidden; }
+
+        /* LAYOUT DIVIDIDO */
+        .wrapper { display: flex; width: 100%; height: 100%; }
+
+        /* LADO ESQUERDO: O MASCOTE (O REAL) */
+        .mascote-side { 
+            width: 45%; background: radial-gradient(circle at center, #0a1520 0%, #050a0f 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-right: 1px solid rgba(255,255,255,0.05); position: relative;
         }
 
-        .login-card {
-            width: 100%;
-            max-width: 440px;
-            padding: 40px;
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 32px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            text-align: center;
-            z-index: 10;
-        }
+        /* LADO DIREITO: O FORMULÁRIO */
+        .form-side { width: 55%; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
 
-        /* ==========================================
-           1. MASCOTE SVG INTERATIVO (O SUNNY)
-           ========================================== */
-        .mascote-container {
-            width: 140px; height: 140px;
-            margin: 0 auto 30px;
-            position: relative;
-        }
-
-        /* Animação de Raios Externos */
-        .sun-rays {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            animation: rotateRays 15s linear infinite;
-        }
-
-        @keyframes rotateRays { 100% { transform: rotate(360deg); } }
-
+        /* O PERSONAGEM SUNNY (SVG) */
+        .sunny-box { width: 300px; height: 350px; position: relative; }
         .sunny-svg { width: 100%; height: 100%; overflow: visible; }
         
-        /* Face e Sorriso */
-        .sun-face { fill: #FFD54F; filter: drop-shadow(0 0 15px rgba(255, 213, 79, 0.5)); }
-        .sun-mouth { stroke: #333; stroke-width: 3; fill: none; stroke-linecap: round; }
+        /* Animações Contínuas */
+        .corpo-sol { fill: var(--yellow); filter: drop-shadow(0 0 30px rgba(255, 213, 79, 0.4)); animation: flutuar 3s ease-in-out infinite; }
+        @keyframes flutuar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .raios { transform-origin: center; animation: girar 20s linear infinite; }
+        @keyframes girar { 100% { transform: rotate(360deg); } }
+
+        /* Membros e Face */
+        .olho { fill: #2c3e50; transition: 0.3s; }
+        .braco, .perna { fill: var(--yellow); stroke: #FBC02D; stroke-width: 2; transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .boca { stroke: #2c3e50; stroke-width: 3; fill: none; stroke-linecap: round; transition: 0.3s; }
+
+        /* ESTADOS DE ANIMAÇÃO DO PERSONAGEM */
+        /* 1. Olhando para o E-mail */
+        .modo-email .olho { transform: translate(5px, 8px); }
         
-        /* Olhos Reativos */
-        .olho { fill: #333; transition: transform 0.2s ease-out; }
-        .pupila { fill: #fff; }
+        /* 2. Surpresa e Tapando os Olhos (Senha) */
+        .modo-senha .braco-esq { transform: translate(35px, -60px) rotate(40deg); }
+        .modo-senha .braco-dir { transform: translate(-35px, -60px) rotate(-40deg); }
+        .modo-senha .olho { opacity: 0; }
+        .modo-senha .boca { d: path("M40 75 Q50 75 60 75"); } /* Boca de surpresa/reta */
 
-        /* Braços (Escondendo os olhos) */
-        .braco { 
-            fill: #FFD54F; 
-            stroke: #FBC02D; stroke-width: 1;
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-            opacity: 0;
-            transform: translateY(20px);
-        }
+        /* 3. Espreitando (Ver Senha) */
+        .modo-espreitar .braco-esq { transform: translate(20px, -60px) rotate(20deg); }
+        .modo-espreitar .braco-dir { transform: translate(-20px, -60px) rotate(-20deg); }
+        .modo-espreitar .olho { opacity: 1; transform: scale(0.7) translateY(-5px); }
 
-        /* Estados das Animações */
-        .look-at-email .olho { transform: translate(4px, 5px); }
+        /* FORMULÁRIO */
+        h1 { font-size: 42px; margin-bottom: 10px; }
+        h1 span { color: var(--blue); }
+        .subtitle { color: #666; margin-bottom: 40px; }
         
-        .covering-eyes .braco { opacity: 1; transform: translateY(0); }
-        .covering-eyes .olho { opacity: 0; }
+        .campo { margin-bottom: 25px; max-width: 450px; }
+        .campo label { display: block; font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .peeking-eyes .braco-left { transform: translate(-8px, -5px) rotate(-15deg); }
-        .peeking-eyes .braco-right { transform: translate(8px, -5px) rotate(15deg); }
-        .peeking-eyes .olho { opacity: 1; transform: scale(0.8); }
+        .input-wrap { position: relative; }
+        .input-wrap input { width: 100%; padding: 18px 18px 18px 50px; background: #111; border: 1px solid #222; border-radius: 15px; color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
+        .input-wrap input:focus { border-color: var(--blue); background: #151515; }
+        .input-wrap i { position: absolute; left: 18px; top: 20px; opacity: 0.3; }
 
-        /* ==========================================
-           2. FORMULÁRIO E UX
-           ========================================== */
-        .brand-title { font-size: 36px; font-weight: 800; margin-bottom: 35px; letter-spacing: -1.5px; }
-        .brand-title span { color: var(--primary); }
+        .btn-entrar { width: 100%; max-width: 450px; padding: 20px; border-radius: 15px; background: linear-gradient(90deg, #4fc3f7, #0288d1); border: none; color: #fff; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3); }
+        .btn-entrar:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(2, 136, 209, 0.5); }
 
-        .field { text-align: left; margin-bottom: 22px; position: relative; }
-        .field label { font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 1px; }
-        
-        .input-group { position: relative; }
-        .input-group input {
-            width: 100%; padding: 16px 16px 16px 48px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px; color: #fff; font-size: 16px;
-            transition: all 0.3s;
-        }
-        .input-group input:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(79, 195, 247, 0.2); }
-        
-        .icon { position: absolute; left: 16px; top: 17px; font-size: 18px; opacity: 0.4; }
-        .btn-view { position: absolute; right: 16px; top: 17px; background: none; border: none; cursor: pointer; color: #fff; opacity: 0.5; font-size: 18px; }
+        .feedback { margin-top: 20px; max-width: 450px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; font-weight: bold; }
+        .erro { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; }
+        .sucesso { background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid #4CAF50; }
 
-        .btn-main {
-            width: 100%; padding: 18px; border-radius: 18px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none; color: #fff; font-weight: 900; font-size: 16px;
-            cursor: pointer; transition: 0.4s;
-            box-shadow: 0 10px 25px rgba(2, 136, 209, 0.4);
-            margin-top: 15px;
-        }
-        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(2, 136, 209, 0.6); }
-        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .switch-txt { margin-top: 25px; font-size: 14px; color: #b0bec5; }
-        .switch-txt a { color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
-
-        .status-msg { 
-            margin-top: 20px; padding: 14px; border-radius: 12px; font-size: 14px; 
-            font-weight: 600; display: none; animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } }
-        .error { background: rgba(255, 82, 82, 0.1); color: var(--error); border: 1px solid var(--error); }
-        .success { background: rgba(76, 175, 80, 0.1); color: var(--success); border: 1px solid var(--success); }
-
+        @media (max-width: 900px) { .mascote-side { display: none; } .form-side { width: 100%; padding: 30px; } }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        
-        <!-- Sunny 2.0: O Mascote Vetorial -->
-        <div class="mascote-container" id="sunny-control">
-            <div class="sun-rays">
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="48" fill="none" stroke="#FFB74D" stroke-width="2" stroke-dasharray="8 8"/>
+    <div class="wrapper">
+        <div class="mascote-side" id="lado-mascote">
+            <div class="sunny-box" id="sunny-box">
+                <svg class="sunny-svg" viewBox="0 0 100 120">
+                    <!-- Raios Girando -->
+                    <g class="raios">
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="#FFB74D" stroke-width="2" stroke-dasharray="10 5"/>
+                    </g>
+                    <!-- Pernas -->
+                    <rect class="perna" x="40" y="85" width="6" height="20" rx="3"/>
+                    <rect class="perna" x="54" y="85" width="6" height="20" rx="3"/>
+                    <!-- Corpo -->
+                    <circle class="corpo-sol" cx="50" cy="50" r="38"/>
+                    <!-- Braços -->
+                    <rect class="braco braco-esq" x="5" y="45" width="25" height="8" rx="4"/>
+                    <rect class="braco braco-dir" x="70" y="45" width="25" height="8" rx="4"/>
+                    <!-- Rosto -->
+                    <circle class="olho" cx="40" cy="45" r="4"/>
+                    <circle class="olho" cx="60" cy="45" r="4"/>
+                    <path class="boca" id="boca-svg" d="M40 65 Q50 75 60 65"/>
                 </svg>
             </div>
-            <svg class="sunny-svg" viewBox="0 0 100 100">
-                <circle class="sun-face" cx="50" cy="50" r="35"/>
-                <!-- Olhos -->
-                <g class="olhos-group">
-                    <circle id="olho-L" class="olho" cx="40" cy="45" r="4"/>
-                    <circle id="olho-R" class="olho" cx="60" cy="45" r="4"/>
-                </g>
-                <path class="sun-mouth" d="M40 60 Q50 70 60 60"/>
-                <!-- Braços (Mãos) -->
-                <rect class="braco braco-left" x="25" y="35" width="22" height="25" rx="10"/>
-                <rect class="braco braco-right" x="53" y="35" width="22" height="25" rx="10"/>
-            </svg>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">SEU GUARDIÃO AMBIENTAL</p>
         </div>
 
-        <h1 class="brand-title">PreviAr<span>.</span></h1>
+        <div class="form-side">
+            <h1 id="titulo-form">Bem-vindo<span>.</span></h1>
+            <p class="subtitle" id="sub-form">Acesse o painel preditivo do PreviAr</p>
 
-        <div id="form-box">
-            <div class="field">
-                <label>Identificador de Acesso</label>
-                <div class="input-group">
-                    <span class="icon">📧</span>
-                    <input type="email" id="email" placeholder="estudante@uniube.edu.br" onfocus="updateSunny('email')" onblur="updateSunny('reset')">
+            <div class="campo">
+                <label>Identificação (E-mail)</label>
+                <div class="input-wrap">
+                    <i>📧</i>
+                    <input type="email" id="email" placeholder="nome@exemplo.com" onfocus="reagir('email')" onblur="reagir('reset')">
                 </div>
             </div>
 
-            <div class="field">
-                <label>Chave de Segurança</label>
-                <div class="input-group">
-                    <span class="icon">🔒</span>
-                    <input type="password" id="senha" placeholder="••••••••" onfocus="updateSunny('password')" onblur="updateSunny('reset')">
-                    <button type="button" class="btn-view" onclick="togglePeek()">👁️</button>
+            <div class="campo">
+                <label>Chave de Acesso</label>
+                <div class="input-wrap">
+                    <i>🔒</i>
+                    <input type="password" id="senha" placeholder="••••••••" onfocus="reagir('senha')" onblur="reagir('reset')">
+                    <button onclick="espiar()" style="position:absolute; right:15px; top:18px; background:none; border:none; color:#444; cursor:pointer;">👁️</button>
                 </div>
             </div>
 
-            <button class="btn-main" id="btn-exec" onclick="handleAuth()">Acessar Monitoramento</button>
+            <button class="btn-entrar" id="btn-master" onclick="autenticar()">Entrar no Monitoramento</button>
 
-            <p class="switch-txt" id="toggle-area">
-                Novo no PreviAr? <a onclick="toggleMode()">Criar conta de estudante</a>
-            </p>
+            <div style="margin-top:25px; font-size:14px; color:#666;">
+                <span id="footer-txt">Novo por aqui?</span> 
+                <a href="#" onclick="mudarModo()" style="color:var(--blue); text-decoration:none; font-weight:bold;" id="footer-link">Criar conta agora</a>
+            </div>
 
-            <div id="feedback" class="status-msg"></div>
+            <div id="status" class="feedback"></div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÕES DE ELITE
-        const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_-xvSt9oDNcXTfb69gfsdnQ_k8BxD8KI";
+        // CONFIGURAÇÕES SUPABASE
+        const SUPABASE_URL = "COLE_SUA_URL_AQUI";
+        const SUPABASE_KEY = "COLE_SUA_CHAVE_AQUI";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let isSignupMode = false;
+        let modoCadastro = false;
 
-        // ==========================================
-        // MOTOR DE ANIMAÇÃO DO MASCOTE
-        // ==========================================
-        function updateSunny(state) {
-            const container = document.getElementById('sunny-control');
-            container.classList.remove('look-at-email', 'covering-eyes', 'peeking-eyes');
+        // 1. REAÇÕES DO SUNNY (O PERSONAGEM)
+        function reagir(acao) {
+            const mascote = document.getElementById('sunny-box');
+            mascote.classList.remove('modo-email', 'modo-senha', 'modo-espreitar');
 
-            if (state === 'email') container.classList.add('look-at-email');
-            if (state === 'password') {
-                const isVisible = document.getElementById('senha').type === 'text';
-                container.classList.add(isVisible ? 'peeking-eyes' : 'covering-eyes');
+            if(acao === 'email') mascote.classList.add('modo-email');
+            if(acao === 'senha') {
+                const ver = document.getElementById('senha').type === 'text';
+                mascote.classList.add(ver ? 'modo-espreitar' : 'modo-senha');
             }
         }
 
-        function togglePeek() {
+        function espiar() {
             const input = document.getElementById('senha');
             input.type = (input.type === 'password') ? 'text' : 'password';
-            if (document.activeElement === input) updateSunny('password');
+            if(document.activeElement === input) reagir('senha');
         }
 
-        // ==========================================
-        // LÓGICA DE IHM E UX
-        // ==========================================
-        function toggleMode() {
-            isSignupMode = !isSignupMode;
-            const btn = document.getElementById('btn-exec');
-            const txt = document.getElementById('toggle-area');
-            
-            btn.innerText = isSignupMode ? "Finalizar Cadastro" : "Acessar Monitoramento";
-            txt.innerHTML = isSignupMode ? 
-                "Já tem acesso? <a onclick='toggleMode()'>Fazer Login</a>" : 
-                "Novo no PreviAr? <a onclick='toggleMode()'>Criar conta de estudante</a>";
+        // 2. LÓGICA DE IHM
+        function mudarModo() {
+            modoCadastro = !modoCadastro;
+            document.getElementById('titulo-form').innerHTML = modoCadastro ? "Nova Conta<span>.</span>" : "Bem-vindo<span>.</span>";
+            document.getElementById('btn-master').innerText = modoCadastro ? "Finalizar Cadastro" : "Entrar no Monitoramento";
+            document.getElementById('footer-txt').innerText = modoCadastro ? "Já tem acesso?" : "Novo por aqui?";
+            document.getElementById('footer-link').innerText = modoCadastro ? "Fazer Login" : "Criar conta agora";
         }
 
-        function notify(text, type) {
-            const box = document.getElementById('feedback');
-            box.innerText = text;
-            box.style.display = 'block';
-            box.className = `status-msg ${type}`;
+        function avisar(txt, tipo) {
+            const s = document.getElementById('status');
+            s.innerText = txt; s.style.display = 'block'; s.className = `feedback ${tipo}`;
         }
 
-        // ==========================================
-        // INTEGRAÇÃO SUPABASE
-        // ==========================================
-        async function handleAuth() {
+        // 3. COMUNICAÇÃO REAL COM SUPABASE
+        async function autenticar() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('senha').value;
-            const btn = document.getElementById('btn-exec');
+            const btn = document.getElementById('btn-master');
 
-            if (!email || !password) {
-                notify("⚠️ Preencha os campos para validar o acesso.", "error");
-                return;
-            }
+            if(!email || !password) { avisar("⚠️ Preencha todos os campos.", "erro"); return; }
+            
+            btn.disabled = true; btn.innerText = "Processando...";
 
-            btn.disabled = true;
-            btn.innerText = "Processando...";
-
-            if (isSignupMode) {
-                const { error } = await supabase.auth.signUp({ email, password });
-                if (error) notify("❌ Erro: " + error.message, "error");
-                else notify("✅ Verifique seu e-mail para confirmar a conta!", "success");
+            if(modoCadastro) {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if(error) avisar("❌ " + error.message, "erro");
+                else avisar("✅ Conta criada! Verifique seu e-mail ou faça login.", "sucesso");
             } else {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) notify("❌ Credenciais inválidas. Tente novamente.", "error");
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if(error) avisar("❌ Acesso negado. Verifique os dados.", "erro");
                 else {
-                    notify("🚀 Acesso concedido! Sincronizando dados...", "success");
-                    setTimeout(() => { alert("Login realizado com sucesso! Agora vamos preparar sua Dashboard."); }, 1000);
+                    avisar("🚀 Autorizado! Entrando...", "sucesso");
+                    setTimeout(() => { alert("Login OK! Próximo passo: Sua Dashboard Pro."); }, 1000);
                 }
             }
             btn.disabled = false;
-            btn.innerText = isSignupMode ? "Finalizar Cadastro" : "Acessar Monitoramento";
+            btn.innerText = modoCadastro ? "Finalizar Cadastro" : "Entrar no Monitoramento";
         }
     </script>
 </body>
