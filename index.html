@@ -3,205 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PreviAr - Login de Elite</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <title>PreviAr - Guardião Ambiental</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        :root { --blue: #4fc3f7; --dark: #050a0f; --yellow: #FFD54F; }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        /* ==========================================
+           1. DESIGN SYSTEM & ATMOSFERA
+           ========================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
         
-        body { background: var(--dark); color: #fff; height: 100vh; display: flex; overflow: hidden; }
+        :root {
+            --bg-dark: #090e17;
+            --blue: #29b6f6;
+            --blue-dark: #0277bd;
+            --yellow-light: #ffe082;
+            --yellow-main: #ffca28;
+            --yellow-dark: #ff8f00;
+        }
 
-        /* LAYOUT DIVIDIDO */
-        .wrapper { display: flex; width: 100%; height: 100%; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(circle at 30% 50%, rgba(255, 202, 40, 0.05) 0%, transparent 60%);
+            color: #fff; height: 100vh; display: flex; overflow: hidden; 
+        }
 
-        /* LADO ESQUERDO: O MASCOTE (O REAL) */
-        .mascote-side { 
-            width: 45%; background: radial-gradient(circle at center, #0a1520 0%, #050a0f 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        .split-layout { display: flex; width: 100%; height: 100%; }
+
+        /* LADO DO MASCOTE */
+        .mascot-panel { 
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
             border-right: 1px solid rgba(255,255,255,0.05); position: relative;
         }
 
-        /* LADO DIREITO: O FORMULÁRIO */
-        .form-side { width: 55%; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
+        /* LADO DO FORMULÁRIO */
+        .form-panel { 
+            flex: 1; padding: 60px; display: flex; flex-direction: column; justify-content: center; 
+            max-width: 600px;
+        }
 
-        /* O PERSONAGEM SUNNY (SVG) */
-        .sunny-box { width: 300px; height: 350px; position: relative; }
-        .sunny-svg { width: 100%; height: 100%; overflow: visible; }
+        /* ==========================================
+           2. A ENGENHARIA DO MASCOTE (SVG & CSS)
+           ========================================== */
+        .svg-container { width: 350px; height: 350px; position: relative; }
+        .sunny { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 20px 30px rgba(255, 143, 0, 0.3)); }
         
-        /* Animações Contínuas */
-        .corpo-sol { fill: var(--yellow); filter: drop-shadow(0 0 30px rgba(255, 213, 79, 0.4)); animation: flutuar 3s ease-in-out infinite; }
-        @keyframes flutuar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        .raios { transform-origin: center; animation: girar 20s linear infinite; }
-        @keyframes girar { 100% { transform: rotate(360deg); } }
-
-        /* Membros e Face */
-        .olho { fill: #2c3e50; transition: 0.3s; }
-        .braco, .perna { fill: var(--yellow); stroke: #FBC02D; stroke-width: 2; transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .boca { stroke: #2c3e50; stroke-width: 3; fill: none; stroke-linecap: round; transition: 0.3s; }
-
-        /* ESTADOS DE ANIMAÇÃO DO PERSONAGEM */
-        /* 1. Olhando para o E-mail */
-        .modo-email .olho { transform: translate(5px, 8px); }
+        /* Animações Autônomas */
+        .sun-body-group { animation: float 4s ease-in-out infinite; transform-origin: center; }
+        .sun-rays { animation: spin 30s linear infinite; transform-origin: 100px 100px; }
         
-        /* 2. Surpresa e Tapando os Olhos (Senha) */
-        .modo-senha .braco-esq { transform: translate(35px, -60px) rotate(40deg); }
-        .modo-senha .braco-dir { transform: translate(-35px, -60px) rotate(-40deg); }
-        .modo-senha .olho { opacity: 0; }
-        .modo-senha .boca { d: path("M40 75 Q50 75 60 75"); } /* Boca de surpresa/reta */
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* 3. Espreitando (Ver Senha) */
-        .modo-espreitar .braco-esq { transform: translate(20px, -60px) rotate(20deg); }
-        .modo-espreitar .braco-dir { transform: translate(-20px, -60px) rotate(-20deg); }
-        .modo-espreitar .olho { opacity: 1; transform: scale(0.7) translateY(-5px); }
+        /* Peças do Personagem (Transições Suaves) */
+        .arm { transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .pupil { transition: transform 0.3s ease-out, opacity 0.2s; }
+        .eyelid { transition: opacity 0.3s; opacity: 0; }
+        .mouth { transition: d 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
 
-        /* FORMULÁRIO */
-        h1 { font-size: 42px; margin-bottom: 10px; }
-        h1 span { color: var(--blue); }
-        .subtitle { color: #666; margin-bottom: 40px; }
+        /* ESTADOS DE INTERAÇÃO (A Mágica) */
         
-        .campo { margin-bottom: 25px; max-width: 450px; }
-        .campo label { display: block; font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        /* Estado: Olhando E-mail */
+        .state-email .pupil { transform: translate(-8px, 12px); }
+        .state-email .sun-body-group { transform: rotate(-5deg); }
+
+        /* Estado: Tampando o Rosto (Senha) */
+        /* Matemágica do transform-origin baseada no SVG */
+        .state-password .arm-left { transform: rotate(140deg); }
+        .state-password .arm-right { transform: rotate(-140deg); }
+        .state-password .pupil { opacity: 0; }
+        .state-password .eyelid { opacity: 1; }
+        .state-password .mouth { d: path("M 85 130 Q 100 135 115 130 Q 100 125 85 130"); } /* Boca de Surpresa "O" */
+
+        /* Estado: Espiando (Ver Senha) */
+        .state-peek .arm-left { transform: rotate(115deg); }
+        .state-peek .arm-right { transform: rotate(-115deg); }
+        .state-peek .pupil { opacity: 1; transform: translate(0, -5px) scale(0.8); }
+        .state-peek .eyelid { opacity: 0; }
+        .state-peek .mouth { d: path("M 80 125 Q 100 135 120 125"); } /* Sorriso tímido */
+
+        /* ==========================================
+           3. UI DO FORMULÁRIO (Glass & Neon)
+           ========================================== */
+        .logo-text { font-size: 48px; font-weight: 900; margin-bottom: 5px; letter-spacing: -1px; }
+        .logo-text span { color: var(--blue); }
+        .subtitle { color: #8c9eff; font-size: 16px; margin-bottom: 40px; font-weight: 700; }
+
+        .input-group { margin-bottom: 25px; position: relative; }
+        .input-group label { display: block; font-size: 13px; font-weight: 800; color: var(--blue); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .input-wrap { position: relative; }
-        .input-wrap input { width: 100%; padding: 18px 18px 18px 50px; background: #111; border: 1px solid #222; border-radius: 15px; color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
-        .input-wrap input:focus { border-color: var(--blue); background: #151515; }
-        .input-wrap i { position: absolute; left: 18px; top: 20px; opacity: 0.3; }
+        .input-field {
+            width: 100%; padding: 18px 20px 18px 50px;
+            background: rgba(255, 255, 255, 0.03); border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px; color: #fff; font-size: 16px; font-weight: 700;
+            transition: 0.3s;
+        }
+        .input-field:focus { background: rgba(0, 0, 0, 0.4); border-color: var(--blue); outline: none; box-shadow: 0 0 20px rgba(41, 182, 246, 0.2); }
+        .input-field::placeholder { color: #555; font-weight: 400; }
+        
+        .icon-left { position: absolute; left: 18px; top: 43px; font-size: 18px; filter: grayscale(1); opacity: 0.5; transition: 0.3s; }
+        .input-field:focus + .icon-left { filter: grayscale(0); opacity: 1; }
+        
+        .btn-eye { position: absolute; right: 15px; top: 40px; background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .btn-eye:hover { opacity: 1; transform: scale(1.1); }
 
-        .btn-entrar { width: 100%; max-width: 450px; padding: 20px; border-radius: 15px; background: linear-gradient(90deg, #4fc3f7, #0288d1); border: none; color: #fff; font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(2, 136, 209, 0.3); }
-        .btn-entrar:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(2, 136, 209, 0.5); }
+        .btn-submit {
+            width: 100%; padding: 20px; margin-top: 15px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            border: none; border-radius: 16px; color: #fff;
+            font-size: 18px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(2, 119, 189, 0.4); transition: 0.3s;
+        }
+        .btn-submit:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(2, 119, 189, 0.6); }
 
-        .feedback { margin-top: 20px; max-width: 450px; padding: 15px; border-radius: 10px; display: none; font-size: 14px; font-weight: bold; }
-        .erro { background: rgba(255, 82, 82, 0.1); color: #ff5252; border: 1px solid #ff5252; }
-        .sucesso { background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid #4CAF50; }
+        .toggle-mode { margin-top: 30px; text-align: center; font-size: 15px; color: #8c9eff; }
+        .toggle-mode a { color: #fff; font-weight: 900; text-decoration: none; cursor: pointer; border-bottom: 2px solid var(--blue); padding-bottom: 2px; transition: 0.3s; }
+        .toggle-mode a:hover { color: var(--yellow-main); border-color: var(--yellow-main); }
 
-        @media (max-width: 900px) { .mascote-side { display: none; } .form-side { width: 100%; padding: 30px; } }
+        .alert-box { 
+            margin-top: 20px; padding: 15px; border-radius: 12px; font-weight: 800; font-size: 14px; 
+            text-align: center; display: none; animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+        @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .alert-error { background: rgba(244, 67, 54, 0.1); color: #ef5350; border: 2px solid rgba(244, 67, 54, 0.3); }
+        .alert-success { background: rgba(76, 175, 80, 0.1); color: #66bb6a; border: 2px solid rgba(76, 175, 80, 0.3); }
+
+        @media (max-width: 900px) { .mascot-panel { display: none; } .form-panel { padding: 30px; } }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <div class="mascote-side" id="lado-mascote">
-            <div class="sunny-box" id="sunny-box">
-                <svg class="sunny-svg" viewBox="0 0 100 120">
-                    <!-- Raios Girando -->
-                    <g class="raios">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="#FFB74D" stroke-width="2" stroke-dasharray="10 5"/>
+    <div class="split-layout">
+        
+        <!-- LADO ESQUERDO: O PERSONAGEM (Engenharia SVG) -->
+        <div class="mascot-panel">
+            <div class="svg-container" id="character-controller">
+                <svg class="sunny" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Gradiente 3D estilo Disney -->
+                        <radialGradient id="bodyGrad" cx="30%" cy="30%" r="70%">
+                            <stop offset="0%" stop-color="#fff176" />
+                            <stop offset="50%" stop-color="#ffca28" />
+                            <stop offset="100%" stop-color="#ff8f00" />
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Grupo Mestre: Tudo que flutua -->
+                    <g class="sun-body-group">
+                        
+                        <!-- Pernas (Ficam atrás do corpo) -->
+                        <rect x="80" y="140" width="12" height="40" rx="6" fill="#ffca28" stroke="#ff8f00" stroke-width="2"/>
+                        <rect x="108" y="140" width="12" height="40" rx="6" fill="#ffca28" stroke="#ff8f00" stroke-width="2"/>
+                        <!-- Pés -->
+                        <ellipse cx="86" cy="180" rx="12" ry="6" fill="#ff8f00"/>
+                        <ellipse cx="114" cy="180" rx="12" ry="6" fill="#ff8f00"/>
+
+                        <!-- Raios do Sol (Animados para girar) -->
+                        <g class="sun-rays">
+                            <path d="M100 10 L110 30 L90 30 Z" fill="#ff8f00"/>
+                            <path d="M100 190 L110 170 L90 170 Z" fill="#ff8f00"/>
+                            <path d="M10 100 L30 110 L30 90 Z" fill="#ff8f00"/>
+                            <path d="M190 100 L170 110 L170 90 Z" fill="#ff8f00"/>
+                            <path d="M36 36 L50 50 L36 50 Z" fill="#ff8f00"/>
+                            <path d="M164 164 L150 150 L164 150 Z" fill="#ff8f00"/>
+                            <path d="M164 36 L150 50 L150 36 Z" fill="#ff8f00"/>
+                            <path d="M36 164 L50 150 L50 164 Z" fill="#ff8f00"/>
+                        </g>
+
+                        <!-- Corpo (O Círculo Principal 3D) -->
+                        <circle cx="100" cy="100" r="55" fill="url(#bodyGrad)"/>
+
+                        <!-- Braço Esquerdo (Ancorado no ombro) -->
+                        <!-- transform-origin define a "junta" do ombro para girar -->
+                        <rect class="arm arm-left" x="20" y="105" width="45" height="12" rx="6" fill="#ffca28" stroke="#ff8f00" stroke-width="2" style="transform-origin: 50px 111px;"/>
+                        
+                        <!-- Braço Direito (Ancorado no ombro) -->
+                        <rect class="arm arm-right" x="135" y="105" width="45" height="12" rx="6" fill="#ffca28" stroke="#ff8f00" stroke-width="2" style="transform-origin: 150px 111px;"/>
+
+                        <!-- Rosto -->
+                        <g class="face">
+                            <!-- Olho Esquerdo -->
+                            <circle cx="80" cy="90" r="12" fill="#fff" stroke="#ff8f00" stroke-width="1"/>
+                            <circle class="pupil" cx="80" cy="90" r="6" fill="#37474f"/>
+                            <path class="eyelid" d="M 68 90 Q 80 80 92 90" stroke="#ff8f00" stroke-width="3" fill="none"/>
+                            
+                            <!-- Olho Direito -->
+                            <circle cx="120" cy="90" r="12" fill="#fff" stroke="#ff8f00" stroke-width="1"/>
+                            <circle class="pupil" cx="120" cy="90" r="6" fill="#37474f"/>
+                            <path class="eyelid" d="M 108 90 Q 120 80 132 90" stroke="#ff8f00" stroke-width="3" fill="none"/>
+                            
+                            <!-- Bochechas (Blush) -->
+                            <ellipse cx="65" cy="110" rx="8" ry="4" fill="#ff7043" opacity="0.6"/>
+                            <ellipse cx="135" cy="110" rx="8" ry="4" fill="#ff7043" opacity="0.6"/>
+
+                            <!-- Boca (Manipulada via JS/CSS) -->
+                            <path class="mouth" d="M 85 115 Q 100 135 115 115" stroke="#37474f" stroke-width="4" fill="none" stroke-linecap="round"/>
+                        </g>
+
                     </g>
-                    <!-- Pernas -->
-                    <rect class="perna" x="40" y="85" width="6" height="20" rx="3"/>
-                    <rect class="perna" x="54" y="85" width="6" height="20" rx="3"/>
-                    <!-- Corpo -->
-                    <circle class="corpo-sol" cx="50" cy="50" r="38"/>
-                    <!-- Braços -->
-                    <rect class="braco braco-esq" x="5" y="45" width="25" height="8" rx="4"/>
-                    <rect class="braco braco-dir" x="70" y="45" width="25" height="8" rx="4"/>
-                    <!-- Rosto -->
-                    <circle class="olho" cx="40" cy="45" r="4"/>
-                    <circle class="olho" cx="60" cy="45" r="4"/>
-                    <path class="boca" id="boca-svg" d="M40 65 Q50 75 60 65"/>
                 </svg>
             </div>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">SEU GUARDIÃO AMBIENTAL</p>
+            <p style="margin-top: 30px; font-weight: 800; color: #8c9eff; letter-spacing: 2px; font-size: 12px;">SISTEMA INTELIGENTE PREVIAR</p>
         </div>
 
-        <div class="form-side">
-            <h1 id="titulo-form">Bem-vindo<span>.</span></h1>
-            <p class="subtitle" id="sub-form">Acesse o painel preditivo do PreviAr</p>
+        <!-- LADO DIREITO: O FORMULÁRIO -->
+        <div class="form-panel">
+            <h1 class="logo-text">PreviAr<span>.</span></h1>
+            <p class="subtitle" id="form-subtitle">Autenticação Segura</p>
 
-            <div class="campo">
-                <label>Identificação (E-mail)</label>
-                <div class="input-wrap">
-                    <i>📧</i>
-                    <input type="email" id="email" placeholder="nome@exemplo.com" onfocus="reagir('email')" onblur="reagir('reset')">
-                </div>
+            <div class="input-group">
+                <label>Identificador Acadêmico (E-mail)</label>
+                <input type="email" id="email" class="input-field" placeholder="seu.nome@uniube.edu.br" onfocus="triggerMascot('email')" onblur="triggerMascot('reset')">
+                <span class="icon-left">📧</span>
             </div>
 
-            <div class="campo">
-                <label>Chave de Acesso</label>
-                <div class="input-wrap">
-                    <i>🔒</i>
-                    <input type="password" id="senha" placeholder="••••••••" onfocus="reagir('senha')" onblur="reagir('reset')">
-                    <button onclick="espiar()" style="position:absolute; right:15px; top:18px; background:none; border:none; color:#444; cursor:pointer;">👁️</button>
-                </div>
+            <div class="input-group">
+                <label>Chave de Acesso (Senha)</label>
+                <input type="password" id="senha" class="input-field" placeholder="••••••••" onfocus="triggerMascot('password')" onblur="triggerMascot('reset')">
+                <span class="icon-left">🔒</span>
+                <button type="button" class="btn-eye" onclick="togglePassword()">👁️</button>
             </div>
 
-            <button class="btn-entrar" id="btn-master" onclick="autenticar()">Entrar no Monitoramento</button>
+            <button class="btn-submit" id="btn-action" onclick="processAuth()">Iniciar Sessão</button>
 
-            <div style="margin-top:25px; font-size:14px; color:#666;">
-                <span id="footer-txt">Novo por aqui?</span> 
-                <a href="#" onclick="mudarModo()" style="color:var(--blue); text-decoration:none; font-weight:bold;" id="footer-link">Criar conta agora</a>
+            <div class="toggle-mode">
+                <span id="toggle-lbl">Não possui credenciais?</span> 
+                <a onclick="switchMode()" id="toggle-link">Registrar Estudante</a>
             </div>
 
-            <div id="status" class="feedback"></div>
+            <div id="msg-box" class="alert-box"></div>
         </div>
+
     </div>
 
     <script>
-        // CONFIGURAÇÕES SUPABASE
+        // ==========================================
+        // 1. CONFIGURAÇÃO DE BANCO DE DADOS (SUPABASE)
+        // ==========================================
         const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-xvSt9oDNcXTfb69gfsdnQ_k8BxD8KI";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let modoCadastro = false;
+        let isRegistering = false;
 
-        // 1. REAÇÕES DO SUNNY (O PERSONAGEM)
-        function reagir(acao) {
-            const mascote = document.getElementById('sunny-box');
-            mascote.classList.remove('modo-email', 'modo-senha', 'modo-espreitar');
+        // ==========================================
+        // 2. MOTOR DO PERSONAGEM
+        // ==========================================
+        function triggerMascot(state) {
+            const mascot = document.getElementById('character-controller');
+            // Limpa as classes de estado
+            mascot.classList.remove('state-email', 'state-password', 'state-peek');
 
-            if(acao === 'email') mascote.classList.add('modo-email');
-            if(acao === 'senha') {
-                const ver = document.getElementById('senha').type === 'text';
-                mascote.classList.add(ver ? 'modo-espreitar' : 'modo-senha');
+            if (state === 'email') {
+                mascot.classList.add('state-email');
+            } else if (state === 'password') {
+                const isVisible = document.getElementById('senha').type === 'text';
+                mascot.classList.add(isVisible ? 'state-peek' : 'state-password');
             }
         }
 
-        function espiar() {
-            const input = document.getElementById('senha');
-            input.type = (input.type === 'password') ? 'text' : 'password';
-            if(document.activeElement === input) reagir('senha');
+        function togglePassword() {
+            const pwdInput = document.getElementById('senha');
+            pwdInput.type = (pwdInput.type === 'password') ? 'text' : 'password';
+            
+            // Se o campo estiver focado, atualiza a reação do personagem na hora
+            if (document.activeElement === pwdInput) {
+                triggerMascot('password');
+            }
         }
 
-        // 2. LÓGICA DE IHM
-        function mudarModo() {
-            modoCadastro = !modoCadastro;
-            document.getElementById('titulo-form').innerHTML = modoCadastro ? "Nova Conta<span>.</span>" : "Bem-vindo<span>.</span>";
-            document.getElementById('btn-master').innerText = modoCadastro ? "Finalizar Cadastro" : "Entrar no Monitoramento";
-            document.getElementById('footer-txt').innerText = modoCadastro ? "Já tem acesso?" : "Novo por aqui?";
-            document.getElementById('footer-link').innerText = modoCadastro ? "Fazer Login" : "Criar conta agora";
+        // ==========================================
+        // 3. LÓGICA DE INTERFACE
+        // ==========================================
+        function switchMode() {
+            isRegistering = !isRegistering;
+            
+            document.getElementById('form-subtitle').innerText = isRegistering ? "Registro de Novo Pesquisador" : "Autenticação Segura";
+            document.getElementById('btn-action').innerText = isRegistering ? "Confirmar Registro" : "Iniciar Sessão";
+            document.getElementById('toggle-lbl').innerText = isRegistering ? "Já possui acesso autorizado?" : "Não possui credenciais?";
+            document.getElementById('toggle-link').innerText = isRegistering ? "Fazer Login" : "Registrar Estudante";
+            
+            // Esconde alertas antigos
+            document.getElementById('msg-box').style.display = 'none';
         }
 
-        function avisar(txt, tipo) {
-            const s = document.getElementById('status');
-            s.innerText = txt; s.style.display = 'block'; s.className = `feedback ${tipo}`;
+        function showAlert(msg, type) {
+            const box = document.getElementById('msg-box');
+            box.innerText = msg;
+            box.className = `alert-box alert-${type}`;
+            box.style.display = 'block';
         }
 
-        // 3. COMUNICAÇÃO REAL COM SUPABASE
-        async function autenticar() {
+        // ==========================================
+        // 4. LÓGICA DE AUTENTICAÇÃO REAL
+        // ==========================================
+        async function processAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('senha').value;
-            const btn = document.getElementById('btn-master');
+            const btn = document.getElementById('btn-action');
 
-            if(!email || !password) { avisar("⚠️ Preencha todos os campos.", "erro"); return; }
-            
-            btn.disabled = true; btn.innerText = "Processando...";
+            if (!email || !password) {
+                showAlert("⚠️ Acesso Negado: Preencha todos os campos do formulário.", "error");
+                return;
+            }
 
-            if(modoCadastro) {
+            btn.disabled = true;
+            btn.innerText = "Processando Matriz...";
+
+            if (isRegistering) {
+                // Rota de Cadastro
                 const { data, error } = await supabase.auth.signUp({ email, password });
-                if(error) avisar("❌ " + error.message, "erro");
-                else avisar("✅ Conta criada! Verifique seu e-mail ou faça login.", "sucesso");
+                
+                if (error) {
+                    showAlert("❌ Falha no Registro: " + error.message, "error");
+                } else {
+                    showAlert("✅ Registro Concluído! Você já pode Iniciar Sessão.", "success");
+                }
             } else {
+                // Rota de Login
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if(error) avisar("❌ Acesso negado. Verifique os dados.", "erro");
-                else {
-                    avisar("🚀 Autorizado! Entrando...", "sucesso");
-                    setTimeout(() => { alert("Login OK! Próximo passo: Sua Dashboard Pro."); }, 1000);
+                
+                if (error) {
+                    showAlert("❌ Credenciais Inválidas. Tente novamente.", "error");
+                } else {
+                    showAlert("🚀 Acesso Liberado! Preparando Dashboard Preditiva...", "success");
+                    // Simulação de carregamento para a próxima tela
+                    setTimeout(() => { 
+                        alert("Sua Autenticação está 100% funcional! O próximo passo é integrar isso à sua Dashboard do PreviAr."); 
+                        // Aqui no futuro colocaremos o código para sumir com o login e mostrar o App.
+                    }, 1500);
                 }
             }
+
+            // Restaura o botão
             btn.disabled = false;
-            btn.innerText = modoCadastro ? "Finalizar Cadastro" : "Entrar no Monitoramento";
+            btn.innerText = isRegistering ? "Confirmar Registro" : "Iniciar Sessão";
         }
     </script>
 </body>
