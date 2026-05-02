@@ -3,354 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PreviAr - Guardião da Saúde</title>
+    <title>PreviAr - Faça seu Login</title>
     
-    <!-- Ícone da Aba do Navegador (Favicon) -->
     <link rel="icon" type="image/png" href="logo.png">
-    
-    <!-- SDK do Supabase e Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* DESIGN SYSTEM (Premium Dark & Glassmorphism) */
-        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; }
-        body { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: #fff; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 420px; height: 100vh; display: flex; flex-direction: column; position: relative; }
-        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+        /* ==========================================
+           1. ESTILO LOGIN PREMIUM (Referência)
+           ========================================== */
+        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         
-        .header { display: flex; align-items: center; gap: 10px; padding: 20px; padding-bottom: 10px; }
-        .header img { width: 40px; height: 40px; filter: drop-shadow(0 0 10px rgba(253, 216, 53, 0.5)); }
-        .header h1 { font-size: 26px; font-weight: 900; background: -webkit-linear-gradient(#4fc3f7, #0288d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { 
+            background-color: #000; 
+            color: #fff; 
+            height: 100vh; 
+            display: flex; 
+            overflow: hidden; 
+        }
+
+        /* Divisão da tela: Esquerda (Form) / Direita (Imagem) */
+        .login-wrapper { 
+            display: flex; 
+            width: 100%; 
+            height: 100%; 
+        }
+
+        .login-side { 
+            width: 50%; 
+            padding: 60px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            background: #000; 
+            z-index: 2;
+        }
+
+        .image-side { 
+            width: 50%; 
+            background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1350&q=80') no-repeat center center; 
+            background-size: cover; 
+            position: relative;
+        }
+
+        .image-side::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, #000, transparent);
+        }
+
+        /* ==========================================
+           2. O SOLZINHO ANIMADO (Mascote UX)
+           ========================================== */
+        .mascote-container {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            position: relative;
+            align-self: flex-start;
+        }
+
+        .sol-face {
+            width: 80px; height: 80px;
+            background: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px; left: 20px;
+            box-shadow: 0 0 30px #FF8C00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.5s ease;
+        }
+
+        .olhos { display: flex; gap: 15px; transition: 0.3s; }
+        .olho { width: 10px; height: 10px; background: #333; border-radius: 50%; }
+        .boca { 
+            position: absolute; bottom: 20px; 
+            width: 20px; height: 10px; 
+            border-bottom: 3px solid #333; 
+            border-radius: 0 0 10px 10px; 
+        }
+
+        /* Braços (Escondendo os olhos) */
+        .bracos {
+            position: absolute; width: 100%; height: 100%;
+            top: 0; left: 0; pointer-events: none;
+        }
+        .braco {
+            width: 30px; height: 30px; background: #FFD700; border-radius: 10px;
+            position: absolute; top: 45px; transition: 0.5s; opacity: 0;
+        }
+        .braco-esq { left: 5px; transform: rotate(-45deg); }
+        .braco-dir { right: 5px; transform: rotate(45deg); }
+
+        /* Estados da Animação */
+        .olhando-baixo .olhos { transform: translateY(5px); }
+        .escondido .braco { opacity: 1; transform: translateY(-15px) rotate(0deg); }
+        .escondido .olhos { opacity: 0; }
+        .fresta .braco-esq { transform: translateY(-15px) translateX(-5px) rotate(-20deg); }
+        .fresta .olhos { opacity: 1; transform: scale(0.7); }
+
+        /* ==========================================
+           3. FORMULÁRIO E INPUTS
+           ========================================== */
+        h1 { font-size: 48px; margin-bottom: 40px; font-weight: bold; }
+        h1 span { color: #A855F7; }
+
+        .input-group { margin-bottom: 25px; position: relative; max-width: 400px; }
+        .input-group label { display: block; margin-bottom: 10px; color: #999; font-size: 14px; }
         
-        .tela { display: none; padding: 0 20px 20px 20px; flex-grow: 1; overflow-y: auto; animation: fadeIn 0.4s ease-out forwards; padding-bottom: 90px; }
-        .tela.ativa { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .input-field {
+            width: 100%; padding: 15px; padding-left: 45px;
+            background: #111; border: 1px solid #222;
+            border-radius: 8px; color: #fff; font-size: 16px;
+            outline: none; transition: 0.3s;
+        }
+        .input-field:focus { border-color: #A855F7; background: #181818; }
 
-        /* TELA DE LOGIN MELHORADA */
-        #tela-login { display: flex; flex-direction: column; justify-content: center; height: 100vh; padding: 30px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 13px; color: #b0bec5; margin-bottom: 5px; font-weight: 600; }
-        .input-box { width: 100%; padding: 14px; border-radius: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 15px; outline: none; transition: 0.3s; }
-        .input-box:focus { border-color: #4fc3f7; background: rgba(0,0,0,0.6); }
-        
-        /* Correção do Select Feio */
-        select.input-box option { background-color: #1e293b; color: #fff; font-size: 15px; padding: 10px; }
-        
-        .btn-primario { width: 100%; padding: 14px; border-radius: 10px; background: linear-gradient(135deg, #0288d1, #01579b); color: #fff; font-weight: bold; font-size: 16px; border: none; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-primario:hover { filter: brightness(1.2); }
-        .btn-secundario { width: 100%; padding: 14px; border-radius: 10px; background: transparent; color: #4fc3f7; font-weight: bold; font-size: 14px; border: 1px solid #4fc3f7; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-secundario:hover { background: rgba(79, 195, 247, 0.1); }
-        
-        .aviso-erro { color: #ff5252; font-size: 13px; text-align: center; margin-top: 15px; font-weight: bold; min-height: 20px; }
-        .aviso-sucesso { color: #4CAF50; font-size: 13px; text-align: center; margin-top: 15px; font-weight: bold; min-height: 20px; }
+        .icon-field { position: absolute; left: 15px; top: 43px; color: #444; }
 
-        /* TELA REAL E LABORATÓRIO (Mantidos idênticos) */
-        .grid-clima { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card-dado { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; text-align: center; }
-        .card-dado span { font-size: 12px; color: #b0bec5; display: block; margin-bottom: 5px; }
-        .card-dado strong { font-size: 20px; }
-        .status-box { text-align: center; font-size: 20px; font-weight: 900; padding: 20px; border-radius: 15px; margin: 15px 0; text-transform: uppercase; transition: 0.5s; }
-        .Verde { background: linear-gradient(135deg, #43a047, #1b5e20); box-shadow: 0 0 20px rgba(67,160,71,0.3); }
-        .Vermelho { background: linear-gradient(135deg, #e53935, #b71c1c); box-shadow: 0 0 20px rgba(229,57,53,0.3); }
-        .Laranja { background: linear-gradient(135deg, #fb8c00, #e65100); }
-        .Amarelo { background: linear-gradient(135deg, #fdd835, #f57f17); color: #000; }
-        .Cinza { background: #424242; }
+        .links-aux { display: flex; justify-content: flex-end; max-width: 400px; margin-bottom: 30px; }
+        .links-aux a { color: #666; text-decoration: none; font-size: 13px; }
+        .links-aux a:hover { color: #A855F7; }
 
-        .container-anatomia { display: flex; justify-content: center; padding: 20px 0; position: relative; }
-        .svg-corpo { width: 180px; height: auto; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
-        .svg-orgao { fill: rgba(255,255,255,0.2); transition: 0.5s; cursor: pointer; }
-        .alerta-svg-pulmao { fill: #e53935; filter: drop-shadow(0 0 15px #e53935); animation: palpitar 1s infinite; }
-        .alerta-svg-cardio { fill: #1e88e5; filter: drop-shadow(0 0 15px #1e88e5); animation: palpitar 0.8s infinite; }
-        .alerta-svg-pele { stroke: #fb8c00; stroke-width: 3px; filter: drop-shadow(0 0 10px #fb8c00); }
-        @keyframes palpitar { 0% { transform: scale(1); transform-origin: center; } 50% { transform: scale(1.05); transform-origin: center; } 100% { transform: scale(1); transform-origin: center; } }
+        .btn-entrar {
+            width: 100%; max-width: 400px; padding: 16px;
+            background: linear-gradient(90deg, #6366F1, #A855F7, #EC4899);
+            border: none; border-radius: 12px;
+            color: #fff; font-weight: bold; font-size: 16px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-entrar:hover { transform: scale(1.02); filter: brightness(1.1); }
 
-        .btn-ciencia { background: rgba(79, 195, 247, 0.1); border: 1px solid #4fc3f7; color: #4fc3f7; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; text-align: left; transition: 0.3s; }
-        .btn-ciencia:hover { background: rgba(79, 195, 247, 0.3); }
-        .caixa-ciencia { display: none; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; margin-top: 5px; font-size: 13px; border-left: 3px solid #ffeb3b; line-height: 1.5; color: #cfd8dc; }
+        .footer-link { text-align: center; max-width: 400px; margin-top: 20px; color: #666; font-size: 14px; }
+        .footer-link a { color: #A855F7; text-decoration: none; font-weight: bold; }
 
-        /* NAV BAR */
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: rgba(15, 32, 39, 0.95); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: none; justify-content: space-around; padding: 12px 0; padding-bottom: env(safe-area-inset-bottom, 12px); z-index: 100; }
-        .nav-btn { background: none; border: none; color: #78909c; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: 0.3s; }
-        .nav-btn.active { color: #4fc3f7; transform: translateY(-3px); }
-        .nav-icon { font-size: 22px; }
+        #msg-feedback { 
+            max-width: 400px; padding: 15px; border-radius: 8px; 
+            margin-top: 20px; display: none; font-size: 14px; text-align: center;
+        }
+        .erro { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .sucesso { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
+
+        /* Mobile Adjust */
+        @media (max-width: 768px) {
+            .image-side { display: none; }
+            .login-side { width: 100%; padding: 30px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- TELA 0: LOGIN & CADASTRO -->
-    <div id="tela-login" class="tela ativa">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <img src="logo.png" alt="Logo PreviAr" style="width: 80px; height: 80px; margin-bottom: 10px;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'40\' fill=\'none\' stroke=\'%234fc3f7\' stroke-width=\'5\'/></svg>'">
-            <h1 style="font-size: 32px; background: -webkit-linear-gradient(#4fc3f7, #0288d1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">PreviAr</h1>
-            <p style="color: #b0bec5; font-size: 14px;">Sentinela Ambiental Preditivo</p>
+    <div class="login-wrapper">
+        <div class="login-side">
+            
+            <!-- Mascote Interativo -->
+            <div class="mascote-container" id="sol-mascote">
+                <div class="sol-face" id="sol-face">
+                    <div class="olhos">
+                        <div class="olho"></div>
+                        <div class="olho"></div>
+                    </div>
+                    <div class="boca"></div>
+                </div>
+                <div class="bracos">
+                    <div class="braco braco-esq"></div>
+                    <div class="braco braco-dir"></div>
+                </div>
+            </div>
+
+            <h1>Faça seu login<span>.</span></h1>
+
+            <div id="form-login">
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <span class="icon-field">✉</span>
+                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" onfocus="animarSol('olhar')" onblur="animarSol('normal')">
+                </div>
+
+                <div class="input-group">
+                    <label>Senha</label>
+                    <span class="icon-field">🔒</span>
+                    <input type="password" id="senha" class="input-field" placeholder="••••••••" onfocus="animarSol('esconder')" onblur="animarSol('normal')">
+                    <button onclick="toggleSenha()" style="position:absolute; right:15px; top:43px; background:none; border:none; color:#444; cursor:pointer;">👁️</button>
+                </div>
+
+                <div class="links-aux">
+                    <a href="#" onclick="alert('Funcionalidade em desenvolvimento no Supabase...')">Esqueci minha senha</a>
+                </div>
+
+                <button class="btn-entrar" id="btn-acao" onclick="executarLogin()">Entrar</button>
+
+                <div class="footer-link">
+                    Ainda não tenho uma conta? <a href="#" onclick="trocarModo()">Criar agora</a>
+                </div>
+
+                <div id="msg-feedback"></div>
+            </div>
         </div>
 
-        <div class="input-group">
-            <label>E-mail</label>
-            <input type="email" id="email-input" class="input-box" placeholder="seu@email.com" autocomplete="email">
-        </div>
-        <div class="input-group">
-            <label>Senha Segura</label>
-            <input type="password" id="senha-input" class="input-box" placeholder="••••••••">
-        </div>
-        <div class="input-group">
-            <label>Sua Localização</label>
-            <select id="cidade-input" class="input-box">
-                <option value="Uberlândia, MG">Uberlândia, MG</option>
-                <option value="São Paulo, SP">São Paulo, SP</option>
-                <option value="Rio de Janeiro, RJ">Rio de Janeiro, RJ</option>
-            </select>
-        </div>
-
-        <button class="btn-primario" onclick="entrarSistema()">Acessar Painel</button>
-        <button class="btn-secundario" onclick="cadastrarUsuario()">Criar Nova Conta</button>
-        
-        <!-- Caixas de mensagem dinâmicas -->
-        <p id="login-msg" class="aviso-erro"></p>
+        <div class="image-side"></div>
     </div>
 
-    <!-- O APLICATIVO PRINCIPAL -->
-    <div id="app-principal" class="app-container" style="display: none;">
-        
-        <div class="header">
-            <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
-            <div>
-                <h1>PreviAr</h1>
-                <p id="display-cidade" style="font-size: 13px; color: #b0bec5;">Conectando...</p>
-            </div>
-        </div>
-
-        <!-- TELA 1: DASHBOARD REAL -->
-        <div id="tela-home" class="tela">
-            <div id="tela-painel" class="status-box Cinza">Analisando Atmosfera...</div>
-            
-            <h3 style="font-size:15px; color:#b0bec5; margin-bottom: 10px;">Telemetria Atual</h3>
-            <div class="grid-clima">
-                <div class="card-dado"><span>Temperatura</span><strong id="tela-temp">--°C</strong></div>
-                <div class="card-dado"><span>Umidade Relativa</span><strong id="tela-umidade">--%</strong></div>
-                <div class="card-dado"><span>Índice UV</span><strong>Moderado</strong></div>
-                <div class="card-dado"><span>Qualidade do Ar</span><strong>Boa</strong></div>
-            </div>
-
-            <h3 style="font-size:15px; color:#b0bec5; margin-top: 20px; margin-bottom: 10px;">Dossiê de Riscos</h3>
-            <div class="glass-card">
-                <p id="alerta-geral" style="font-size: 14px; line-height: 1.5;">Aguardando dados da nuvem...</p>
-            </div>
-        </div>
-
-        <!-- TELA 2: LABORATÓRIO E ANATOMIA -->
-        <div id="tela-anatomia" class="tela">
-            <div class="glass-card" style="padding: 15px;">
-                <div class="input-group" style="margin-bottom: 10px;">
-                    <label>Condição do Paciente:</label>
-                    <select id="sim-doenca" class="input-box" onchange="rodarSimulacao()">
-                        <option value="nenhuma">Pessoa Saudável</option>
-                        <option value="asma">Asmático / Rinite</option>
-                        <option value="hipertensao">Hipertenso</option>
-                    </select>
-                </div>
-                <div class="input-group" style="margin-bottom: 5px;">
-                    <label>Manipular Temperatura: <span id="val-temp" style="color:white;">25</span>°C</label>
-                    <input type="range" id="sim-temp" style="width: 100%;" min="0" max="45" value="25" oninput="rodarSimulacao()">
-                </div>
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>Manipular Umidade: <span id="val-umid" style="color:white;">60</span>%</label>
-                    <input type="range" id="sim-umidade" style="width: 100%;" min="10" max="100" value="60" oninput="rodarSimulacao()">
-                </div>
-            </div>
-
-            <div class="container-anatomia">
-                <svg class="svg-corpo" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
-                    <path id="svg-pele" d="M50 10 C40 10, 35 20, 35 30 C35 35, 38 40, 40 45 C30 50, 20 60, 20 85 L25 150 L35 150 L35 100 L40 100 L40 240 L50 240 L60 240 L60 100 L65 100 L65 150 L75 150 L80 85 C80 60, 70 50, 60 45 C62 40, 65 35, 65 30 C65 20, 60 10, 50 10 Z" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
-                    <path id="svg-pulmao" class="svg-orgao" d="M42 60 C38 60, 35 70, 37 80 C39 85, 45 85, 48 80 C49 70, 48 60, 42 60 M58 60 C62 60, 65 70, 63 80 C61 85, 55 85, 52 80 C51 70, 52 60, 58 60"/>
-                    <path id="svg-cardio" class="svg-orgao" d="M50 75 C48 72, 45 75, 47 78 L50 82 L53 78 C55 75, 52 72, 50 75 Z"/>
-                </svg>
-            </div>
-
-            <div id="painel-ciencia" style="margin-top: 10px;">
-                <button class="btn-ciencia" onclick="abrirCiencia('txt-pulmao')">📚 Fisiologia: Impacto Pulmonar</button>
-                <div id="txt-pulmao" class="caixa-ciencia"><strong>Estudo Clínico:</strong> O ar abaixo de 30% de umidade paralisa os cílios do trato respiratório. Em pacientes asmáticos, a ausência de muco causa inflamação imediata dos brônquios.</div>
-                
-                <button class="btn-ciencia" onclick="abrirCiencia('txt-cardio')">📚 Fisiologia: Estresse Cardíaco</button>
-                <div id="txt-cardio" class="caixa-ciencia"><strong>Estudo Clínico:</strong> Temperaturas extremas causam vasoconstrição. O lúmen das artérias diminui, forçando o miocárdio a bombear com mais pressão, elevando o risco de colapso em hipertensos.</div>
-            </div>
-        </div>
-
-        <!-- TELA 3: GRÁFICOS -->
-        <div id="tela-graficos" class="tela">
-            <h3 style="font-size:16px; color:#b0bec5; margin-bottom: 15px;">Curva de Tendência</h3>
-            <div class="glass-card" style="padding: 10px; background: rgba(0,0,0,0.4);">
-                <canvas id="meuGrafico" width="400" height="300"></canvas>
-            </div>
-            <p style="font-size: 12px; color: #b0bec5; text-align: center;">Cruzamento de Dados Meteorológicos vs. Tempo.</p>
-        </div>
-
-        <!-- BARRA DE NAVEGAÇÃO -->
-        <nav id="menu-inferior" class="bottom-nav">
-            <button class="nav-btn active" onclick="mudarTela('tela-home', this)"><span class="nav-icon">📊</span><span>Monitor</span></button>
-            <button class="nav-btn" onclick="mudarTela('tela-anatomia', this)"><span class="nav-icon">👤</span><span>Anatomia</span></button>
-            <button class="nav-btn" onclick="mudarTela('tela-graficos', this)"><span class="nav-icon">📈</span><span>Gráficos</span></button>
-            <button class="nav-btn" onclick="sairSistema()"><span class="nav-icon">🚪</span><span>Sair</span></button>
-        </nav>
+    <!-- O RESTANTE DO APP (ESTRUTURA) -->
+    <div id="app-content" style="display:none; padding:50px;">
+        <h1>Bem-vindo ao Painel Real!</h1>
+        <button onclick="location.reload()">Sair</button>
     </div>
 
     <script>
-        // ==========================================
-        // 1. INICIALIZAÇÃO DO SUPABASE
-        // ==========================================
-        const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co"; 
+        // Configurações do Supabase
+        const SUPABASE_URL = "https://axtvfilbscsnbhtkgjyh.supabase.co";
         const SUPABASE_KEY = "sb_publishable_-xvSt9oDNcXTfb69gfsdnQ_k8BxD8KI";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ==========================================
-        // 2. SISTEMA DE IDENTIDADE (UX e Validação Melhorados)
-        // ==========================================
-        async function cadastrarUsuario() {
-            const email = document.getElementById('email-input').value;
-            const senha = document.getElementById('senha-input').value;
-            const cidade = document.getElementById('cidade-input').value;
-            const msg = document.getElementById('login-msg');
-            
-            // Cláusulas de Guarda (Validação UX)
-            if (!email || !senha) { 
-                msg.className = "aviso-erro";
-                msg.innerText = "⚠️ Preencha E-mail e Senha para criar a conta."; 
-                return; 
-            }
-            if (senha.length < 6) { 
-                msg.className = "aviso-erro";
-                msg.innerText = "⚠️ A senha precisa ter no mínimo 6 caracteres."; 
-                return; 
-            }
+        let modoCadastro = false;
 
-            msg.className = "aviso-sucesso";
-            msg.innerText = "Criando credenciais no cofre...";
-            
-            // 1. Cria a conta de autenticação
-            const { data, error } = await supabase.auth.signUp({ email: email, password: senha });
-            
-            if (error) { 
-                msg.className = "aviso-erro";
-                msg.innerText = "Erro: " + error.message; 
-            } else { 
-                // 2. Salva a cidade no banco de dados (tabela perfis)
-                if (data.user) {
-                    await supabase.from('perfis').insert([{ id: data.user.id, email: email, cidade: cidade }]);
-                }
-                msg.className = "aviso-sucesso";
-                msg.innerText = "✅ Conta criada com sucesso! Clique em Acessar Painel."; 
+        // 1. ANIMAÇÕES DO SOLZINHO
+        function animarSol(estado) {
+            const mascote = document.getElementById('sol-mascote');
+            mascote.classList.remove('olhando-baixo', 'escondido', 'fresta');
+
+            if(estado === 'olhar') mascote.classList.add('olhando-baixo');
+            if(estado === 'esconder') {
+                const isVisivel = document.getElementById('senha').type === 'text';
+                mascote.classList.add(isVisivel ? 'fresta' : 'escondido');
             }
         }
 
-        async function entrarSistema() {
-            const email = document.getElementById('email-input').value;
-            const senha = document.getElementById('senha-input').value;
-            const msg = document.getElementById('login-msg');
-            
-            if (!email || !senha) { 
-                msg.className = "aviso-erro";
-                msg.innerText = "⚠️ Preencha E-mail e Senha para entrar."; 
-                return; 
+        function toggleSenha() {
+            const campo = document.getElementById('senha');
+            campo.type = (campo.type === 'password') ? 'text' : 'password';
+            if(document.activeElement === campo) animarSol('esconder');
+        }
+
+        // 2. LÓGICA DE INTERFACE
+        function trocarModo() {
+            modoCadastro = !modoCadastro;
+            document.querySelector('h1').innerHTML = modoCadastro ? "Crie sua conta<span>.</span>" : "Faça seu login<span>.</span>";
+            document.getElementById('btn-acao').innerText = modoCadastro ? "Cadastrar" : "Entrar";
+            document.querySelector('.footer-link').innerHTML = modoCadastro ? 
+                "Já tem conta? <a href='#' onclick='trocarModo()'>Fazer login</a>" : 
+                "Ainda não tenho uma conta? <a href='#' onclick='trocarModo()'>Criar agora</a>";
+        }
+
+        function mostrarMensagem(texto, tipo) {
+            const box = document.getElementById('msg-feedback');
+            box.innerText = texto;
+            box.style.display = 'block';
+            box.className = tipo; // 'erro' ou 'sucesso'
+        }
+
+        // 3. COMUNICAÇÃO COM O SUPABASE
+        async function executarLogin() {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const btn = document.getElementById('btn-acao');
+
+            if(!email || !senha) {
+                mostrarMensagem("⚠️ Por favor, preencha todos os campos.", "erro");
+                return;
             }
-            
-            msg.className = "aviso-sucesso";
-            msg.innerText = "Autenticando...";
-            
-            const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: senha });
-            
-            if (error) { 
-                msg.className = "aviso-erro";
-                msg.innerText = "⚠️ Acesso Negado: E-mail ou senha incorretos."; 
+
+            btn.disabled = true;
+            btn.innerText = "Processando...";
+
+            if(modoCadastro) {
+                // Lógica de Cadastro
+                const { data, error } = await supabase.auth.signUp({ email, password: senha });
+                if(error) {
+                    mostrarMensagem("❌ Erro ao cadastrar: " + error.message, "erro");
+                } else {
+                    mostrarMensagem("✅ Sucesso! Verifique seu e-mail para confirmar.", "sucesso");
+                }
             } else {
-                // Busca a cidade do usuário no banco de dados
-                const { data: perfilData } = await supabase.from('perfis').select('cidade').eq('id', data.user.id).single();
-                const cidadeUsuario = perfilData ? perfilData.cidade : "Uberlândia, MG";
-
-                document.getElementById('tela-login').classList.remove('ativa');
-                document.getElementById('app-principal').style.display = 'flex';
-                document.getElementById('menu-inferior').style.display = 'flex';
-                document.getElementById('tela-home').classList.add('ativa');
-                document.getElementById('display-cidade').innerText = cidadeUsuario;
-                
-                buscarDadosReais();
-                iniciarGrafico();
-            }
-        }
-
-        async function sairSistema() {
-            await supabase.auth.signOut();
-            location.reload(); 
-        }
-
-        // ==========================================
-        // LÓGICA DE INTERFACE E LABORATÓRIO 
-        // ==========================================
-        function mudarTela(id, btn) {
-            document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('ativa');
-            btn.classList.add('active');
-        }
-
-        function abrirCiencia(id) {
-            let el = document.getElementById(id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-        }
-
-        async function buscarDadosReais() {
-            try {
-                const { data, error } = await supabase.from('registros_previar').select('*').order('id', { ascending: false }).limit(1);
-                if (data && data.length > 0) {
-                    const req = data[0];
-                    document.getElementById('tela-temp').innerText = `${req.temperatura}°C`;
-                    document.getElementById('tela-umidade').innerText = `${req.umidade}%`;
-                    document.getElementById('tela-painel').innerText = `Risco: ${req.cor_painel}`;
-                    document.getElementById('tela-painel').className = `status-box ${req.cor_painel}`;
-                    document.getElementById('alerta-geral').innerHTML = `<strong>Respiratório:</strong> ${req.alerta_respiratorio}<br><br><strong>Metabólico:</strong> ${req.alerta_diabetico}`;
+                // Lógica de Login
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+                if(error) {
+                    mostrarMensagem("❌ Acesso negado: " + error.message, "erro");
+                } else {
+                    mostrarMensagem("🚀 Autenticado! Redirecionando...", "sucesso");
+                    setTimeout(() => {
+                        document.querySelector('.login-wrapper').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+                    }, 1500);
                 }
-            } catch (e) { console.error(e); }
-        }
-
-        function rodarSimulacao() {
-            let temp = parseInt(document.getElementById('sim-temp').value);
-            let umid = parseInt(document.getElementById('sim-umidade').value);
-            let doenca = document.getElementById('sim-doenca').value;
-            
-            document.getElementById('val-temp').innerText = temp;
-            document.getElementById('val-umid').innerText = umid;
-            
-            let pulmao = document.getElementById('svg-pulmao');
-            let cardio = document.getElementById('svg-cardio');
-            let pele = document.getElementById('svg-pele');
-            
-            pulmao.className.baseVal = "svg-orgao";
-            cardio.className.baseVal = "svg-orgao";
-            pele.className.baseVal = "";
-
-            let limUmid = (doenca === 'asma') ? 45 : 25;
-            if (umid <= limUmid) { pulmao.className.baseVal = "svg-orgao alerta-svg-pulmao"; }
-
-            let limFrio = (doenca === 'hipertensao') ? 20 : 10;
-            if (temp <= limFrio) { cardio.className.baseVal = "svg-orgao alerta-svg-cardio"; }
-            
-            if (umid <= 20 || temp >= 38) { pele.className.baseVal = "alerta-svg-pele"; }
-        }
-        rodarSimulacao();
-
-        function iniciarGrafico() {
-            const ctx = document.getElementById('meuGrafico').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Manhã', '10h', '12h', '14h', '16h', 'Agora'],
-                    datasets: [
-                        { label: 'Temperatura (°C)', data: [18, 22, 28, 30, 27, 25], borderColor: '#ffeb3b', backgroundColor: 'rgba(255,235,59,0.2)', fill: true, tension: 0.4 },
-                        { label: 'Umidade (%)', data: [80, 60, 45, 30, 40, 55], borderColor: '#4fc3f7', backgroundColor: 'transparent', tension: 0.4 }
-                    ]
-                },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#b0bec5' } }, y: { ticks: { color: '#fff' } } } }
-            });
+            }
+            btn.disabled = false;
+            btn.innerText = modoCadastro ? "Cadastrar" : "Entrar";
         }
     </script>
 </body>
